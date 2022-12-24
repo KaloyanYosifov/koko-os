@@ -74,9 +74,10 @@ read_from_disk:
     mov ah, 0x02
     mov al, 0x01
     mov ch, 0x00
-    mov cl, 0x02
+    mov cl, 0x03
     mov dh, 0x00
     mov bx, buffer
+
     int 0x13
 
     jc hard_disk_error
