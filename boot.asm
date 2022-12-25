@@ -42,7 +42,6 @@ initialize:
 start:
     mov si, message
     call print
-    call read_from_disk
 
     jmp $
 
@@ -62,33 +61,7 @@ print_char:
 
     ._done:
         ret
-
-hard_disk_error:
-    mov si, disk_read_error_message
-    call print
-
-    jmp $
-
-; reference --> http://www.ctyme.com/intr/rb-0607.htm
-read_from_disk:
-    mov ah, 0x02
-    mov al, 0x01
-    mov ch, 0x00
-    mov cl, 0x03
-    mov dh, 0x00
-    mov bx, buffer
-
-    int 0x13
-
-    jc hard_disk_error
-
-    mov si, buffer
-    call print
-
-    ret
-
 message: db 'Hello World!', 0xa, 0xd, 0
-disk_read_error_message: db 'Failed to read from disk!', 0xa, 0xd, 0
 it_zero_message: db 'Cannot divide by 0!', 0xa, 0xd, 0
 
 ; we need to fill in 512 bytes for the Master Boot Record
