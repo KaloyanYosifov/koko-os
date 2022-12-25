@@ -107,9 +107,9 @@ load_protected_mode:
 
 ata_lba_read:
     mov ebx, eax ; Backup the LBA
-    shr eax, 24
-    or eax, 0xe0 ; select master drive
-    mov dx, 0x1f6
+
+    mov dx, 0x1f6 ; Port to send drive and bit 24 - 27 of LBA
+    mov al, 11100000b ; set bits to master drive
     out dx, al
 
     ; send total sectors
@@ -117,7 +117,7 @@ ata_lba_read:
     mov eax, ecx
     out dx, al
 
-    mov dx, 0x1F3 ; Port to send bit 0 - 7 of LBA
+    mov dx, 0x1f3 ; Port to send bit 0 - 7 of LBA
     mov eax, ebx ; restore our previous LBA
     out dx, al
 
