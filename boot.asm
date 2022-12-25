@@ -1,5 +1,8 @@
-org 0
+org 0x7c00
 bits 16
+
+CODE_SEG equ gdt_code - gdt_start
+DATA_SEG equ gdt_data - gdt_start
 
 ; used to fix the BPB (BIOS Parameter Block) so that it does not overwrite our code
 bpb_fix:
@@ -10,7 +13,7 @@ bpb_fix:
     times 33 db 0
 
 preinit:
-    jmp 0x7c0:initialize ; sets the code segment to 0x7c0 with the jump, since our origin is now 0
+    jmp 0x00:initialize ; sets the code segment to 0x7c0 with the jump, since our origin is now 0
 
 it_handle_zero:
     mov si, it_zero_message
@@ -19,10 +22,9 @@ it_handle_zero:
 
 initialize:
     cli ; Clear the interrupts
-    mov ax, 0x7c0
+    mov ax, 0x00
     mov ds, ax
     mov es, ax
-    mov ax, 0x00
     mov ss, ax
     mov sp, 0x7c00
     sti ; Enable the interrupts
@@ -43,7 +45,15 @@ start:
     mov si, message
     call print
 
-    jmp $
+    jmp initialized_protected_mode
+
+initialized_protected_mode:
+    cli
+    lgdt [gdt_descriptor]
+    mov eax, cr0
+    or al, 1
+    mov cr0, eax
+    jmp CODE_SEG:load32_mode
 
 print:
     mov ah, 0x0e
@@ -61,6 +71,48 @@ print_char:
 
     ._done:
         ret
+
+gdt_start:
+gdt_null:
+    dd 0x00
+    dd 0x00
+
+; segment descriptor
+gdt_code: ; CS(Code segment) point here
+    dw 0xffff ;Limit
+    dw 0x0000 ;Base
+    db 0x00 ;Base
+    db 0x9a ;10011010b Access byte
+    db 0xCF ;11001111b (Limit, fLag and base)
+    db 0x00 ;Base
+
+gdt_data: ; DS, SS, ES, FS, GS point here
+    dw 0xffff ;Limit
+    dw 0x0000 ;Base
+    db 0x00 ;Base
+    db 0x92 ;10010010b Access byte
+    db 0xCF ;11001111b (Limit, fLag and base)
+    db 0x00 ;Base
+
+gdt_end:
+
+gdt_descriptor:
+    dw gdt_end - gdt_start - 1
+    dd gdt_start
+
+[BITS 32]
+load32_mode:
+    mov ax, DATA_SEG
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov ss, ax
+    mov ebp, 0x00200000
+    mov esp, ebp
+
+    jmp $
+
 message: db 'Hello World!', 0xa, 0xd, 0
 it_zero_message: db 'Cannot divide by 0!', 0xa, 0xd, 0
 
@@ -70,5 +122,3 @@ it_zero_message: db 'Cannot divide by 0!', 0xa, 0xd, 0
 ; so if we have filled 50 bytes the code below will fill 460 bytes of empty instructions
 times 510 - ($ - $$) db 0
 dw 0xAA55
-
-buffer:
