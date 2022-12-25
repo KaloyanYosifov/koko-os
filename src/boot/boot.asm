@@ -5,7 +5,7 @@ CODE_SEG equ gdt_code - gdt_start
 DATA_SEG equ gdt_data - gdt_start
 
 ; used to fix the BPB (BIOS Parameter Block) so that it does not overwrite our code
-bpb_fix:
+boot:
     jmp short preinit
     nop
 
@@ -39,9 +39,6 @@ initialize:
     mov word[ss:0x00], it_handle_zero
     mov word[ss:0x02], 0x7c0
 
-    jmp start
-
-start:
     mov si, message
     call print
 
@@ -53,7 +50,7 @@ initialized_protected_mode:
     mov eax, cr0
     or al, 1
     mov cr0, eax
-    jmp CODE_SEG:load32_mode
+    jmp CODE_SEG:load_protected_mode
 
 print:
     mov ah, 0x0e
@@ -101,22 +98,61 @@ gdt_descriptor:
     dd gdt_start
 
 [BITS 32]
-load32_mode:
-    mov ax, DATA_SEG
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
-    mov ss, ax
-    mov ebp, 0x00200000
-    mov esp, ebp
+load_protected_mode:
+   mov eax, 0x01 ; starting sector
+   mov ecx, 0x64 ; total 100 sectors
+   mov edi, 0x00100000 ; address we want to load these sectors (1MB predefined)
+   call ata_lba_read ; load sectors into memory
+   jmp CODE_SEG:0x00100000
 
-    .load_a20_line:
-        in al, 0x92
-        or al, 2
-        out 0x92, al
+ata_lba_read:
+    mov ebx, eax ; Backup the LBA
+    shr eax, 24
+    or eax, 0xe0 ; select master drive
+    mov dx, 0x1f6
+    out dx, al
 
-    jmp $
+    ; send total sectors
+    mov dx, 0x1f2 ; Port to send number of sectors
+    mov eax, ecx
+    out dx, al
+
+    mov dx, 0x1F3 ; Port to send bit 0 - 7 of LBA
+    mov eax, ebx ; restore our previous LBA
+    out dx, al
+
+    mov dx, 0x1f4 ; Port to send bit 8 - 15 of LBA
+    mov eax, ebx ; restore our previous LBA
+    shr eax, 8
+    out dx, al
+
+    mov dx, 0x1F5 ; Port to send bit 16 - 23 of LBA
+    mov eax, ebx ; restore our previous LBA
+    shr eax, 16
+
+    mov dx, 0x1f7 ; command port
+    mov al, 0x20 ; Read with retry.
+    out dx, al
+
+    ; read all sectors in memory
+    .next_sector:
+        push ecx
+
+    .try_again:
+        mov dx, 0x1f7
+        in al, dx
+        test al, 8
+        jz .try_again
+
+        ; read 256 words at a time
+        mov ecx, 256 ; 256 words is 512 bytes. A word is 2 bytes
+        mov dx, 0x1f0
+        rep insw ; read word from dx port and store it in our 0x00100000 address from line 105
+
+        pop ecx
+        loop .next_sector
+
+        ret
 
 message: db 'Hello World!', 0xa, 0xd, 0
 it_zero_message: db 'Cannot divide by 0!', 0xa, 0xd, 0

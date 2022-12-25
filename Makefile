@@ -1,8 +1,10 @@
-deploy: clean build see
+FILES = ./build/kernel.asm.o
 
-build:
-	test -d ./bin || mkdir bin
-	nasm -f bin ./src/boot/boot.asm -o ./bin/boot.bin
+build: clean build-reqs ./bin/boot.bin ./bin/kernel.bin
+	dd if=./bin/boot.bin >> ./bin/os.bin
+	dd if=./bin/kernel.bin >> ./bin/os.bin
+	# put enought sectors to acommodate for a big kernel if it happens in the future
+	dd if=/dev/zero bs=512 count=100 >> ./bin/os.bin
 
 see:
 	qemu-system-x86_64 -hda ./bin/boot.bin
@@ -12,6 +14,21 @@ check_bin:
 
 clean:
 	rm -rf bin
+	rm -rf build
 
 debugger:
-	x86_64-elf-gdb -ex "target remote | qemu-system-x86_64 -hda ./bin/boot.bin -S -gdb stdio"
+	x86_64-elf-gdb -ex "add-symbol-file ./build/kernelfull.o 0x00100000" -ex "target remote | qemu-system-x86_64 -hda ./bin/os.bin -S -gdb stdio"
+
+build-reqs:
+	test -d ./bin || mkdir bin
+	test -d ./build || mkdir build
+
+./bin/kernel.bin: $(FILES)
+	i686-elf-ld -g -relocatable $(FILES) -o ./build/kernelfull.o
+	i686-elf-gcc -T ./src/linker.ld -o ./bin/kernel.bin -ffreestanding -O0 -nostdlib ./build/kernelfull.o
+
+./bin/boot.bin: ./src/boot/boot.asm
+	nasm -f bin ./src/boot/boot.asm -o ./bin/boot.bin
+
+./build/kernel.asm.o: ./src/kernel.asm
+	nasm -f elf -g ./src/kernel.asm -o ./build/kernel.asm.o
