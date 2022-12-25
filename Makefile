@@ -12,3 +12,6 @@ check_bin:
 
 clean:
 	rm -rf bin
+
+debugger:
+	x86_64-elf-gdb -ex "target remote | qemu-system-x86_64 -hda ./bin/boot.bin -S -gdb stdio"

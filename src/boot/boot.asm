@@ -111,6 +111,11 @@ load32_mode:
     mov ebp, 0x00200000
     mov esp, ebp
 
+    .load_a20_line:
+        in al, 0x92
+        or al, 2
+        out 0x92, al
+
     jmp $
 
 message: db 'Hello World!', 0xa, 0xd, 0
