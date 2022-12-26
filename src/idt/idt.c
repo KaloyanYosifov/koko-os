@@ -1,7 +1,7 @@
 #include "idt.h"
 #include "../config.h"
 #include "../lib/terminal.h"
-#include "../memory/memory.h"
+#include "../lib/memory/memory.h"
 
 struct idt_desc idt_descriptors[KERNEL_TOTAL_INTERRUPTS];
 struct idtr_desc idtr_descriptor;
