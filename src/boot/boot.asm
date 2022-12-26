@@ -24,14 +24,13 @@ _initialize:
     mov sp, 0x7c00
     sti ; Enable the interrupts
 
-    jmp _initialized_protected_mode
+    _load_gdt:
+        cli
+        lgdt [gdt_descriptor]
+        mov eax, cr0
+        or al, 1
+        mov cr0, eax
 
-_initialized_protected_mode:
-    cli
-    lgdt [gdt_descriptor]
-    mov eax, cr0
-    or al, 1
-    mov cr0, eax
     jmp CODE_SEG:_load_protected_mode
 
 gdt_start:
