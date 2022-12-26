@@ -1,6 +1,6 @@
 [BITS 32]
 
-global main
+global _start
 
 CODE_SEG equ 0x08
 DATA_SEG equ 0x10
@@ -21,3 +21,5 @@ _start:
         out 0x92, al
 
     jmp $
+
+the_message: dw 'Hello there', 0
