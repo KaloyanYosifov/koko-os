@@ -10,7 +10,7 @@
 #define VIDEO_MEMORY_LOCATION 0xB8000
 
 uint16_t terminal_make_char(char character, uint8_t color_code);
-void terminal_print_char(uint16_t x, uint16_t y, char character, uint8_t color_code);
+void terminal_write_char(char character, uint8_t color_code);
 void terminal_clear();
 void terminal_newline();
 void terminal_init();

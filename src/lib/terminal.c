@@ -21,6 +21,18 @@ void terminal_print_char(uint16_t x, uint16_t y, char character, uint8_t color_c
     video_mem[(y * VGA_WIDTH) + x] = terminal_make_char(character, color_code);
 }
 
+void terminal_write_char(char character, uint8_t color_code) {
+    if (character == EOL) {
+		current_terminal_x = 0;
+		current_terminal_y += 1;
+
+		return;
+    }
+
+    video_mem[(current_terminal_y * VGA_WIDTH) + current_terminal_x] = terminal_make_char(character, color_code);
+    current_terminal_x += 1;
+}
+
 void terminal_clear() {
     for (uint8_t x = 0; x < VGA_WIDTH; x++) {
         for (uint8_t y = 0; y < VGA_HEIGHT; y++) {
@@ -33,8 +45,7 @@ void terminal_clear() {
 }
 
 void terminal_newline() {
-    current_terminal_x = 0;
-    current_terminal_y += 1;
+    terminal_write_char(EOL, 0);
 }
 
 void terminal_init() {
@@ -57,15 +68,7 @@ void print(char* msg, uint8_t color_code) {
     size_t msg_len = strlen(msg);
 
     for (size_t i = 0; i < msg_len; i++) {
-        if (msg[i] == EOL) {
-            terminal_newline();
-
-            continue;
-        }
-
-        terminal_print_char(current_terminal_x, current_terminal_y, msg[i], color_code);
-
-        current_terminal_x++;
+		terminal_write_char(msg[i], color_code);
     }
 }
 
