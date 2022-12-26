@@ -3,12 +3,10 @@ BUILDDIR := build
 BINDIR := bin
 SOURCES := $(shell find $(SOURCEDIR) -name '*.c')
 # Kernel asm must be first as that is our entrypoint
-OBJECTS := $(BUILDDIR)/kernel.asm.o $(addprefix $(BUILDDIR),$(SOURCES:$(SOURCEDIR)%.c=%.o))
+OBJECTS := $(BUILDDIR)/kernel.asm.o $(BUILDDIR)/idt/idt.asm.o $(addprefix $(BUILDDIR),$(SOURCES:$(SOURCEDIR)%.c=%.o))
 BINARY := $(BUILDDIR)/os.bin
 INCLUDES := -I ./src
 FLAGS := -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
-
-FILES := ./build/kernel.asm.o ./build/kernel.o ./build/lib/terminal.o ./build/lib/string.o
 
 build: clean ./bin/boot.bin ./bin/kernel.bin
 	dd if=./bin/boot.bin >> $(BINARY)
@@ -41,6 +39,10 @@ $(BINDIR)/boot.bin: ./src/boot/boot.asm
 $(BUILDDIR)/kernel.asm.o: ./src/kernel.asm
 	mkdir -p $(@D)
 	nasm -f elf -g ./src/kernel.asm -o ./build/kernel.asm.o
+
+$(BUILDDIR)/idt/idt.asm.o: ./src/idt/idt.asm
+	mkdir -p $(@D)
+	nasm -f elf -g ./src/idt/idt.asm -o ./build/idt/idt.asm.o
 
 # See https://www.gnu.org/software/make/manual/html_node/Automatic-Variables.html for $< and $@
 $(BUILDDIR)/%.o: $(SOURCEDIR)/%.c
