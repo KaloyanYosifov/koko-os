@@ -28,7 +28,14 @@ void terminal_write_char(char character, uint8_t color_code) {
 		current_terminal_y += 1;
 
 		return;
-    }
+	} else if (current_terminal_x >= VGA_WIDTH) {
+		current_terminal_x = 0;
+		current_terminal_y += 1;
+	}
+
+	if (current_terminal_y >= VGA_HEIGHT) {
+		current_terminal_y = 0;
+	}
 
     video_mem[(current_terminal_y * VGA_WIDTH) + current_terminal_x] = terminal_make_char(character, color_code);
     current_terminal_x += 1;
