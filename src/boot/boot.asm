@@ -5,22 +5,17 @@ CODE_SEG equ gdt_code - gdt_start
 DATA_SEG equ gdt_data - gdt_start
 
 ; used to fix the BPB (BIOS Parameter Block) so that it does not overwrite our code
-boot:
-    jmp short preinit
+_boot:
+    jmp short _preinit
     nop
 
     ; fill 33 empty bytes to cover for BPB
     times 33 db 0
 
-preinit:
-    jmp 0x00:initialize ; sets the code segment to 0x7c0 with the jump, since our origin is now 0
+_preinit:
+    jmp 0x00:_initialize ; sets the code segment to 0x7c0 with the jump, since our origin is now 0
 
-it_handle_zero:
-    mov si, it_zero_message
-    call print
-    iret
-
-initialize:
+_initialize:
     cli ; Clear the interrupts
     mov ax, 0x00
     mov ds, ax
@@ -29,45 +24,15 @@ initialize:
     mov sp, 0x7c00
     sti ; Enable the interrupts
 
-    ; Fill our Interrupt vector table
-    ; The first 2 bytes are the offset
-    ; The second 2 bytes are the segment
-    ; Example real_address: 0x7c0 * 16 + 14 = 0x7C0E
-    ;
-    ; We use the stack segment to point to the first address in memory
-    ; as it is already initialized by us
-    mov word[ss:0x00], it_handle_zero
-    mov word[ss:0x02], 0x7c0
+    jmp _initialized_protected_mode
 
-    mov si, message
-    call print
-
-    jmp initialized_protected_mode
-
-initialized_protected_mode:
+_initialized_protected_mode:
     cli
     lgdt [gdt_descriptor]
     mov eax, cr0
     or al, 1
     mov cr0, eax
-    jmp CODE_SEG:load_protected_mode
-
-print:
-    mov ah, 0x0e
-    mov bx, 0
-    call print_char
-    ret
-
-print_char:
-    ._loop:
-        lodsb
-        cmp al, 0
-        je ._done
-        int 0x10
-        jmp ._loop
-
-    ._done:
-        ret
+    jmp CODE_SEG:_load_protected_mode
 
 gdt_start:
 gdt_null:
@@ -98,7 +63,7 @@ gdt_descriptor:
     dd gdt_start
 
 [BITS 32]
-load_protected_mode:
+_load_protected_mode:
    mov eax, 0x01 ; starting sector
    mov ecx, 0x64 ; total 100 sectors
    mov edi, 0x00100000 ; address we want to load these sectors (1MB predefined)
@@ -153,9 +118,6 @@ ata_lba_read:
         loop .next_sector
 
         ret
-
-message: db 'Hello World!', 0xa, 0xd, 0
-it_zero_message: db 'Cannot divide by 0!', 0xa, 0xd, 0
 
 ; we need to fill in 512 bytes for the Master Boot Record
 ; if we have less we might have an issue with our booting process
