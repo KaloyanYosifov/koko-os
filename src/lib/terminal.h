@@ -2,11 +2,9 @@
 #define TERMINAL
 
 #include <stdint.h>
-#include <stddef.h>
 
 #define VGA_WIDTH 80
 #define VGA_HEIGHT 20
-#define EOL '\n'
 #define VIDEO_MEMORY_LOCATION 0xB8000
 
 uint16_t terminal_make_char(char character, uint8_t color_code);

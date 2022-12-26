@@ -1,4 +1,5 @@
 #include "terminal.h"
+#include "string.h"
 
 uint16_t* video_mem = 0;
 uint16_t current_terminal_x = 0;
@@ -52,16 +53,6 @@ void terminal_init() {
     video_mem = (uint16_t*)(VIDEO_MEMORY_LOCATION);
 
     terminal_clear();
-}
-
-size_t strlen(char* str) {
-    uint16_t len = 0;
-
-    while (str[len] != '\0') {
-        len++;
-    }
-
-    return len;
 }
 
 void print(char* msg, uint8_t color_code) {
