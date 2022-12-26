@@ -9,7 +9,7 @@ FLAGS := -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falig
 
 FILES := ./build/kernel.asm.o ./build/kernel.o ./build/lib/terminal.o ./build/lib/string.o
 
-build: clean build-reqs ./bin/boot.bin ./bin/kernel.bin
+build: clean ./bin/boot.bin ./bin/kernel.bin
 	dd if=./bin/boot.bin >> $(BINARY)
 	dd if=./bin/kernel.bin >> $(BINARY)
 	# put enought sectors to acommodate for a big kernel if it happens in the future
@@ -28,19 +28,20 @@ clean:
 debugger:
 	x86_64-elf-gdb -ex "add-symbol-file ./build/kernelfull.o 0x00100000" -ex "target remote | qemu-system-x86_64 -hda $(BINARY) -S -gdb stdio"
 
-build-reqs:
-	test -d ./bin || mkdir ./bin
-	test -d ./build || mkdir -p ./build/lib
-
 $(BINDIR)/kernel.bin: $(OBJECTS)
+	mkdir -p $(@D)
 	i686-elf-ld -g -relocatable $(OBJECTS) -o ./build/kernelfull.o
 	i686-elf-gcc $(FLAGS) -T ./src/linker.ld -o ./bin/kernel.bin -ffreestanding -O0 -nostdlib ./build/kernelfull.o
 
 $(BINDIR)/boot.bin: ./src/boot/boot.asm
+	mkdir -p $(@D)
 	nasm -f bin ./src/boot/boot.asm -o ./bin/boot.bin
 
 $(BUILDDIR)/kernel.asm.o: ./src/kernel.asm
+	mkdir -p $(@D)
 	nasm -f elf -g ./src/kernel.asm -o ./build/kernel.asm.o
 
+# See https://www.gnu.org/software/make/manual/html_node/Automatic-Variables.html for $< and $@
 $(BUILDDIR)/%.o: $(SOURCEDIR)/%.c
+	mkdir -p $(@D)
 	i686-elf-gcc $(INCLUDES) $(FLAGS) -std=gnu99 -c $< -o $@
