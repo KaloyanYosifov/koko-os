@@ -2,6 +2,7 @@ SOURCEDIR := src
 BUILDDIR := build
 BINDIR := bin
 SOURCES := $(shell find $(SOURCEDIR) -name '*.c')
+# Kernel asm must be first as that is our entrypoint
 OBJECTS := $(BUILDDIR)/kernel.asm.o $(addprefix $(BUILDDIR),$(SOURCES:$(SOURCEDIR)%.c=%.o))
 BINARY := $(BUILDDIR)/os.bin
 INCLUDES := -I ./src
