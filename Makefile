@@ -1,6 +1,6 @@
 FILES = ./build/kernel.asm.o ./build/kernel.o
 INCLUDES = -I ./src
-FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc -std=gnu99
+FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
 
 build: clean build-reqs ./bin/boot.bin ./bin/kernel.bin
 	dd if=./bin/boot.bin >> ./bin/os.bin
@@ -8,8 +8,8 @@ build: clean build-reqs ./bin/boot.bin ./bin/kernel.bin
 	# put enought sectors to acommodate for a big kernel if it happens in the future
 	dd if=/dev/zero bs=512 count=100 >> ./bin/os.bin
 
-see:
-	qemu-system-x86_64 -hda ./bin/boot.bin
+run:
+	qemu-system-x86_64 -hda ./bin/os.bin
 
 check_bin:
 	ndisasm ./bin/boot.bin
@@ -36,4 +36,4 @@ build-reqs:
 	nasm -f elf -g ./src/kernel.asm -o ./build/kernel.asm.o
 
 ./build/kernel.o: ./src/kernel.c
-	i686-elf-gcc $(INCLUDES) $(FLAGS) -c ./src/kernel.c -o ./build/kernel.o
+	i686-elf-gcc $(INCLUDES) $(FLAGS) -std=gnu99 -c ./src/kernel.c -o ./build/kernel.o
