@@ -22,4 +22,4 @@ _start:
 
     jmp $
 
-the_message: dw 'Hello there', 0
+times 512 - ($ - $$) db 0
