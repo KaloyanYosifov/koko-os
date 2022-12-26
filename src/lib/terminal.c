@@ -62,16 +62,16 @@ void terminal_init() {
     terminal_clear();
 }
 
-void print(char* msg, uint8_t color_code) {
+void print(char* msg) {
     size_t msg_len = strlen(msg);
 
     for (size_t i = 0; i < msg_len; i++) {
-		terminal_write_char(msg[i], color_code);
+		terminal_write_char(msg[i], 0xF);
     }
 }
 
-void println(char* msg, uint8_t color_code) {
-    print(msg, color_code);
+void println(char* msg) {
+    print(msg);
 
     terminal_newline();
 }

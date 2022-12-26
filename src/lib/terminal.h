@@ -12,7 +12,7 @@ void terminal_write_char(char character, uint8_t color_code);
 void terminal_clear();
 void terminal_newline();
 void terminal_init();
-void print(char* msg, uint8_t color_code);
-void println(char* msg, uint8_t color_code);
+void print(char* msg);
+void println(char* msg);
 
 #endif
