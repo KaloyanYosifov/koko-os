@@ -2,8 +2,15 @@ SOURCEDIR := src
 BUILDDIR := build
 BINDIR := bin
 SOURCES := $(shell find $(SOURCEDIR) -name '*.c')
+# get asm sources, except for special cases like kernel.asm and boot.asm
+ASM_SOURCES := $(shell find $(SOURCEDIR) -name '*.asm' -not -path 'src/kernel.asm' -not -path 'src/boot/boot.asm')
+
 # Kernel asm must be first as that is our entrypoint
-OBJECTS := $(BUILDDIR)/kernel.asm.o $(BUILDDIR)/idt/idt.asm.o $(addprefix $(BUILDDIR),$(SOURCES:$(SOURCEDIR)%.c=%.o))
+OBJECTS := $(BUILDDIR)/kernel.asm.o $(addprefix $(BUILDDIR),$(ASM_SOURCES:$(SOURCEDIR)%.asm=%.asm.o)) $(addprefix $(BUILDDIR),$(SOURCES:$(SOURCEDIR)%.c=%.o))
+
+# To print information
+#$(info $$OBJECTS is [${ASM_SOURCES}])
+
 BINARY := $(BUILDDIR)/os.bin
 INCLUDES := -I ./src
 FLAGS := -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
@@ -16,9 +23,6 @@ build: clean ./bin/boot.bin ./bin/kernel.bin
 
 run:
 	qemu-system-x86_64 -hda $(BINARY)
-
-check_bin:
-	ndisasm ./bin/boot.bin
 
 clean:
 	rm -rf bin
@@ -40,9 +44,9 @@ $(BUILDDIR)/kernel.asm.o: ./src/kernel.asm
 	mkdir -p $(@D)
 	nasm -f elf -g ./src/kernel.asm -o ./build/kernel.asm.o
 
-$(BUILDDIR)/idt/idt.asm.o: ./src/idt/idt.asm
+$(BUILDDIR)/%.asm.o: $(SOURCEDIR)/%.asm
 	mkdir -p $(@D)
-	nasm -f elf -g ./src/idt/idt.asm -o ./build/idt/idt.asm.o
+	nasm -f elf -g $< -o $@
 
 # See https://www.gnu.org/software/make/manual/html_node/Automatic-Variables.html for $< and $@
 $(BUILDDIR)/%.o: $(SOURCEDIR)/%.c
