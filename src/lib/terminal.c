@@ -62,6 +62,10 @@ void terminal_init() {
     terminal_clear();
 }
 
+void print_char(char character) {
+	terminal_write_char(character, 0xF);
+}
+
 void print(char* msg) {
     size_t msg_len = strlen(msg);
 
@@ -74,4 +78,28 @@ void println(char* msg) {
     print(msg);
 
     terminal_newline();
+}
+
+void print_number(uint32_t number) {
+    uint8_t zero_char = 48;
+    uint32_t reversed = 0;
+
+    // reverse number, so we can prnt correctly
+    while (number > 0) {
+        uint8_t n = number % 10;
+        number = number / 10;
+
+        reversed *= 10;
+        reversed += n;
+    }
+
+
+    while (reversed > 0) {
+        uint8_t n = reversed % 10;
+        reversed = reversed / 10;
+
+        print_char((char) (zero_char + n));
+    }
+
+    println("");
 }
