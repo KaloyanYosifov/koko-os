@@ -2,6 +2,7 @@
 #define HEAP_H
 
 #include "../../config.h"
+#include <stdbool.h>
 #include <stddef.h>
 
 #define HEAP_ENTRY_FREE 0x00
@@ -12,16 +13,17 @@
 
 typedef unsigned int HEAP_ENTRY;
 
-struct heap_table {
+typedef struct Heap_Table {
+    size_t total;
     HEAP_ENTRY* entries;
-    size_t total_used;
-};
+} Heap_Table;
 
-struct heap {
-    struct heap_table* table;
+typedef struct Heap {
+    Heap_Table* table;
     void* start_address;
-};
+} Heap;
 
-void heap_create();
+int heap_create_table(Heap_Table* table, void* table_start_address, unsigned int available_bytes);
+int heap_create(Heap* heap, void* ptr, Heap_Table* table);
 
 #endif
