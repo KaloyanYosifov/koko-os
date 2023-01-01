@@ -2,6 +2,7 @@ SOURCEDIR := src
 BUILDDIR := build
 BINDIR := bin
 SOURCES := $(shell find $(SOURCEDIR) -name '*.c')
+VIRTUAL_MACHINE := qemu-system-i386
 # get asm sources, except for special cases like kernel.asm and boot.asm
 ASM_SOURCES := $(shell find $(SOURCEDIR) -name '*.asm' -not -path 'src/kernel.asm' -not -path 'src/boot/boot.asm')
 
@@ -22,14 +23,14 @@ build: clean ./bin/boot.bin ./bin/kernel.bin
 	dd if=/dev/zero bs=512 count=100 >> $(BINARY)
 
 run:
-	qemu-system-x86_64 -hda $(BINARY)
+	$(VIRTUAL_MACHINE) -hda $(BINARY)
 
 clean:
 	rm -rf bin
 	rm -rf build
 
 debugger:
-	x86_64-elf-gdb -ex "add-symbol-file ./build/kernelfull.o 0x00100000" -ex "target remote | qemu-system-x86_64 -hda $(BINARY) -S -gdb stdio"
+	x86_64-elf-gdb -ex "add-symbol-file ./build/kernelfull.o 0x00100000" -ex "target remote | $(VIRTUAL_MACHINE) -hda $(BINARY) -S -gdb stdio"
 
 $(BINDIR)/kernel.bin: $(OBJECTS)
 	mkdir -p $(@D)

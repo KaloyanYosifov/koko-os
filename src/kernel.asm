@@ -26,7 +26,6 @@ _start:
 
     call kernel_remap_master_pic
     call kernel_main
-    int 0
 
     jmp $
 
