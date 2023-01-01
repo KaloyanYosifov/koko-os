@@ -13,12 +13,12 @@ extern void idt_zero_interrupt();
 extern void idt_null_interrupt();
 extern void idt_keyboard_interrupt();
 
-void acknowledge_interrupt() {
+void idt_acknowledge_interrupt() {
     outb(0x20, 0x20);
 }
 
 void idt_null() {
-    acknowledge_interrupt();
+    idt_acknowledge_interrupt();
 }
 
 void idt_zero() {
@@ -27,7 +27,7 @@ void idt_zero() {
 
 void idt_keyboard() {
     println("A key");
-    acknowledge_interrupt();
+    idt_acknowledge_interrupt();
 }
 
 void idt_set(int interrupt_no, void* address) {
