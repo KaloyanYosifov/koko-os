@@ -1,6 +1,8 @@
 [BITS 32]
 
 global _start
+global kernel_enable_interrupts
+global kernel_disable_interrupts
 
 extern kernel_main
 
@@ -22,8 +24,32 @@ _start:
         or al, 2
         out 0x92, al
 
+    call kernel_remap_master_pic
     call kernel_main
+    int 0
 
     jmp $
+
+kernel_disable_interrupts;
+    cli
+    ret
+
+kernel_enable_interrupts;
+    sti
+    ret
+
+; remap master Programmable Intrerupt Controller (PIC)
+kernel_remap_master_pic:
+    mov al, 0x11
+    out 0x20, al
+
+    mov al, 0x20
+    out 0x21, al
+
+    mov al, 0x1
+    out 0x21, al
+
+    ret
+
 
 times 512 - ($ - $$) db 0

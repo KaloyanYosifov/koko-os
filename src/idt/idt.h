@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
+#define TIMER_INTERRUPT 0x20
+#define KEYBOARD_INTERRUPT 0x21
+
 struct idt_desc
 {
     // Offset bits 0-15
