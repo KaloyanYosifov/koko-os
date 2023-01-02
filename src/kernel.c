@@ -11,6 +11,13 @@ void kernel_main() {
     idt_init();
 
     print("Hello world!\n");
+    uint32_t* data = malloc(sizeof(uint32_t));
+    uint32_t* data2 = malloc(sizeof(uint32_t));
+
+    *data = 44;
+    *data2 = 33;
+
+    print_number(*data);
     /* println("Nice to see you again"); */
     /* println("Nice to see you again"); */
 }

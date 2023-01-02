@@ -1,5 +1,6 @@
 #include "heap.h"
 #include "memory.h"
+#include "../terminal.h"
 
 #include <stdint.h>
 
@@ -17,11 +18,14 @@ void* memset(void* ptr, int c, size_t size) {
 }
 
 void memory_init() {
+    heap_create_table(&heap_table, (void*) MEMORY_HEAP_TABLE_START_ADDRESS, KERNEL_MAX_HEAP_MEMORY);
+    heap_create(&heap, (void*) MEMORY_HEAP_START_ADDRESS, &heap_table);
 
+    println("test");
 }
 
-size_t malloc(size_t size) {
-    return 0;
+void* malloc(size_t amount_of_bytes) {
+    return heap_malloc(&heap, amount_of_bytes);
 }
 
 void free() {
