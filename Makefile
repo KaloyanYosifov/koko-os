@@ -5,6 +5,8 @@ SOURCES := $(shell find $(SOURCEDIR) -name '*.c')
 VIRTUAL_MACHINE := qemu-system-i386
 # get asm sources, except for special cases like kernel.asm and boot.asm
 ASM_SOURCES := $(shell find $(SOURCEDIR) -name '*.asm' -not -path 'src/kernel.asm' -not -path 'src/boot/boot.asm')
+SYMBOLS_FILE := $(BUILDDIR)/kernelfull-elf.o
+DEFAULT_LINK_KERNEL_FILE := $(BUILDDIR)/kernel-default-link.o
 
 # Kernel asm must be first as that is our entrypoint
 OBJECTS := $(BUILDDIR)/kernel.asm.o $(addprefix $(BUILDDIR),$(ASM_SOURCES:$(SOURCEDIR)%.asm=%.asm.o)) $(addprefix $(BUILDDIR),$(SOURCES:$(SOURCEDIR)%.c=%.o))
@@ -29,12 +31,13 @@ clean:
 	rm -rf build
 
 debugger:
-	x86_64-elf-gdb -ex "add-symbol-file ./build/kernelfull.o 0x00100000" -ex "target remote | $(VIRTUAL_MACHINE) -hda $(BINARY) -S -gdb stdio"
+	x86_64-elf-gdb -ex "add-symbol-file ./build/kernelfull-elf.o 0x00100000" -ex "target remote | $(VIRTUAL_MACHINE) -hda $(BINARY) -S -gdb stdio"
 
 $(BINDIR)/kernel.bin: $(OBJECTS)
 	mkdir -p $(@D)
-	i686-elf-ld -g -relocatable $(OBJECTS) -o ./build/kernelfull.o
-	i686-elf-gcc $(FLAGS) -T ./src/linker.ld -o ./bin/kernel.bin ./build/kernelfull.o
+	i686-elf-ld -g -relocatable $(OBJECTS) -o $(DEFAULT_LINK_KERNEL_FILE)
+	i686-elf-gcc $(FLAGS) -T ./src/linker-symbol.ld -o $(SYMBOLS_FILE) $(DEFAULT_LINK_KERNEL_FILE)
+	i686-elf-gcc $(FLAGS) -T ./src/linker-binary.ld -o ./bin/kernel.bin $(DEFAULT_LINK_KERNEL_FILE)
 
 $(BINDIR)/boot.bin: ./src/boot/boot.asm
 	mkdir -p $(@D)
