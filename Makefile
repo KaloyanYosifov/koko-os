@@ -12,8 +12,7 @@ OBJECTS := $(BUILDDIR)/kernel.asm.o $(addprefix $(BUILDDIR),$(ASM_SOURCES:$(SOUR
 # To print information
 #$(info $$OBJECTS is [${ASM_SOURCES}])
 
-BINARY := $(BUILDDIR)/os.bin
-INCLUDES := -I ./src
+BINARY := $(BINDIR)/os.bin
 FLAGS := -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
 
 build: clean ./bin/boot.bin ./bin/kernel.bin
@@ -35,7 +34,7 @@ debugger:
 $(BINDIR)/kernel.bin: $(OBJECTS)
 	mkdir -p $(@D)
 	i686-elf-ld -g -relocatable $(OBJECTS) -o ./build/kernelfull.o
-	i686-elf-gcc $(FLAGS) -T ./src/linker.ld -o ./bin/kernel.bin -ffreestanding -O0 -nostdlib ./build/kernelfull.o
+	i686-elf-gcc $(FLAGS) -T ./src/linker.ld -o ./bin/kernel.bin ./build/kernelfull.o
 
 $(BINDIR)/boot.bin: ./src/boot/boot.asm
 	mkdir -p $(@D)
@@ -52,4 +51,4 @@ $(BUILDDIR)/%.asm.o: $(SOURCEDIR)/%.asm
 # See https://www.gnu.org/software/make/manual/html_node/Automatic-Variables.html for $< and $@
 $(BUILDDIR)/%.o: $(SOURCEDIR)/%.c
 	mkdir -p $(@D)
-	i686-elf-gcc $(INCLUDES) $(FLAGS) -std=gnu99 -c $< -o $@
+	i686-elf-gcc $(FLAGS) -std=gnu99 -c $< -o $@
