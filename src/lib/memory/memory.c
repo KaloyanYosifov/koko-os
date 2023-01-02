@@ -20,8 +20,6 @@ void* memset(void* ptr, int c, size_t size) {
 void memory_init() {
     heap_create_table(&heap_table, (void*) MEMORY_HEAP_TABLE_START_ADDRESS, KERNEL_MAX_HEAP_MEMORY);
     heap_create(&heap, (void*) MEMORY_HEAP_START_ADDRESS, &heap_table);
-
-    println("test");
 }
 
 void* malloc(size_t amount_of_bytes) {

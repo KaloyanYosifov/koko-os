@@ -66,12 +66,12 @@ static HEAP_SIZE_TYPE heap_align_amount_of_bytes_requested(HEAP_SIZE_TYPE amount
     return amount_of_bytes;
 }
 
-static bool heap_entry_is_free(HEAP_ENTRY entry) {
-    return (entry & HEAP_ENTRY_FREE) == 0;
+static bool heap_entry_is_taken(HEAP_ENTRY entry) {
+    return (entry & HEAP_ENTRY_TAKEN) == 1;
 }
 
-static bool heap_entry_is_taken(HEAP_ENTRY entry) {
-    return (entry & HEAP_ENTRY_TAKEN) > 1;
+static bool heap_entry_is_free(HEAP_ENTRY entry) {
+    return !heap_entry_is_taken(entry);
 }
 
 static bool heap_entry_has_next(HEAP_ENTRY entry) {
