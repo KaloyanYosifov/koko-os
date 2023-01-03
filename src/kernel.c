@@ -16,8 +16,10 @@ void kernel_main() {
     memory_init();
     idt_init();
 
-    print("Hello world!\n");
+    println("Hello world!");
     uint32_t* data = malloc(sizeof(uint32_t));
+    void* something = malloc(3232);
+    void* something2 = malloc(5433);
     uint32_t* data2 = malloc(sizeof(uint32_t));
     uint32_t* data3 = malloc(sizeof(uint32_t));
 
@@ -29,9 +31,13 @@ void kernel_main() {
     print_number(*data2);
     print_number(*data3);
 
-    free(data2);
+    free(something);
 
-    print_number(*data);
-    print_number(*data2);
-    print_number(*data3);
+    print_number((uint32_t) something2);
+
+    uint32_t* data4 = malloc(sizeof(uint32_t));
+
+    *data4 = 44;
+
+    print_number(*data4);
 }

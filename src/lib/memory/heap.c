@@ -95,7 +95,11 @@ static Memory_Details heap_request_memory(Heap* heap, HEAP_SIZE_TYPE amount_of_b
        HEAP_ENTRY entry = heap->table->entries[i];
 
        if (heap_entry_is_free(entry)) {
-            current_block = i;
+           // set the current block when we have found a free block initially
+           if (block_count == 0) {
+                current_block = i;
+           }
+
             block_count += 1;
        } else if (heap_entry_is_taken(entry)) {
             current_block = 0;

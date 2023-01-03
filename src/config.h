@@ -7,6 +7,6 @@
 
 // 100 MB at the moment
 #define KERNEL_MAX_HEAP_MEMORY (1024 * 1024) * 100
-#define KERNEL_HEAP_BLOCK_SIZE 4096
+#define KERNEL_HEAP_BLOCK_SIZE 512
 
 #endif
