@@ -9,5 +9,6 @@
 void* memset(void* ptr, int c, size_t size);
 void memory_init();
 void* malloc(size_t amount_of_bytes);
+void free(void* address);
 
 #endif

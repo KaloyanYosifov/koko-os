@@ -17,23 +17,21 @@ void kernel_main() {
     idt_init();
 
     print("Hello world!\n");
-    /* uint32_t* data = malloc(sizeof(uint32_t)); */
-    /* uint32_t* data2 = malloc(sizeof(uint32_t)); */
-    testing* test = malloc(sizeof(testing));
-    testing* test2 = malloc(sizeof(testing));
+    uint32_t* data = malloc(sizeof(uint32_t));
+    uint32_t* data2 = malloc(sizeof(uint32_t));
+    uint32_t* data3 = malloc(sizeof(uint32_t));
 
-    /* *data = 44; */
-    /* *data2 = 33; */
+    *data = 11;
+    *data2 = 22;
+    *data3 = 33;
 
-    test->val = 90000;
-    test->val2 = 243;
-    test->val3 = 50000;
+    print_number(*data);
+    print_number(*data2);
+    print_number(*data3);
 
-    test2->val = 33200;
-    test2->val2 = 120;
-    test2->val3 = 53342;
+    free(data2);
 
-    /* print_number(*data + *data2); */
-    /* println("Nice to see you again"); */
-    /* println("Nice to see you again"); */
+    print_number(*data);
+    print_number(*data2);
+    print_number(*data3);
 }

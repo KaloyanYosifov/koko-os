@@ -31,7 +31,7 @@ clean:
 	rm -rf build
 
 debugger:
-	x86_64-elf-gdb -ex "add-symbol-file ./build/kernelfull-elf.o 0x00100000" -ex "target remote | $(VIRTUAL_MACHINE) -hda $(BINARY) -S -gdb stdio"
+	x86_64-elf-gdb -ex "add-symbol-file $(SYMBOLS_FILE) 0x00100000" -ex "target remote | $(VIRTUAL_MACHINE) -hda $(BINARY) -S -gdb stdio"
 
 $(BINDIR)/kernel.bin: $(OBJECTS)
 	mkdir -p $(@D)

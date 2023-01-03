@@ -26,6 +26,6 @@ void* malloc(size_t amount_of_bytes) {
     return heap_malloc(&heap, amount_of_bytes);
 }
 
-void free() {
-
+void free(void* address) {
+    heap_free(&heap, address);
 }

@@ -137,12 +137,45 @@ void* heap_malloc(Heap* heap, size_t amount_of_bytes) {
             entry |= HEAP_HAS_NEXT;
         }
 
-        heap->table->entries[0] = entry;
+        heap->table->entries[i] = entry;
     }
 
     return details.start_address;
 }
 
 void heap_free(Heap* heap, void* address) {
+    // if we have our start address is bigger than the address passed
+    // it should be an invalid case, as the address cannot be less than the starting point
+    if (heap->start_address > address) {
+        println("Invalid address is going to be freed!");
 
+        while (true) {}
+    }
+
+    HEAP_SIZE_TYPE start_block = 0;
+
+    // TODO: handle case where invalid address that is not aligned to our block size is passed
+
+    if (heap->start_address != address) {
+        start_block = (address - heap->start_address) / KERNEL_HEAP_BLOCK_SIZE;
+    }
+
+    Heap_Table *table = heap->table;
+    HEAP_ENTRY* entry = &table->entries[start_block];
+
+    if (!heap_entry_is_first(*entry)) {
+        println("Address is not the beginning of an address block!");
+
+        while (true) {}
+    }
+
+    HEAP_SIZE_TYPE current_block = start_block;
+
+    do {
+        *entry = HEAP_ENTRY_FREE;
+        void* entry_address = heap_get_address_from_block(heap, start_block);
+        memset(entry_address, 0, KERNEL_HEAP_BLOCK_SIZE);
+
+        entry = &table->entries[++current_block];
+    } while(heap_entry_has_next(*entry));
 }
