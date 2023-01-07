@@ -15,6 +15,6 @@ void terminal_init();
 void print_char(const char character);
 void print(const char* msg);
 void println(const char* msg);
-void print_number(uint32_t number);
+void print_number(int number);
 
 #endif

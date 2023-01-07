@@ -1,6 +1,7 @@
 #include "kernel.h"
 #include "stdbool.h"
 #include "idt/idt.h"
+#include "lib/string.h"
 #include "lib/terminal.h"
 #include "lib/memory/memory.h"
 
@@ -18,4 +19,5 @@ void kernel_main() {
     idt_init();
 
     println("Hello world!");
+    println(itoa(-5000000));
 }
