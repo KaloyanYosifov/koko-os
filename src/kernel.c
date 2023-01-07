@@ -20,4 +20,9 @@ void kernel_main() {
 
     println("Hello world!");
     println(itoa(-5000000));
+    println(itoa(-500000000));
+    println(itoa(500));
+    println(itoa(44320));
+    println(itoa(10));
+    println(itoa(0));
 }
