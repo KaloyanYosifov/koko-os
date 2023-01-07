@@ -9,5 +9,6 @@
 
 char* itoa(int number);
 size_t strlen(const char* str);
+int atoi(const char* number);
 
 #endif

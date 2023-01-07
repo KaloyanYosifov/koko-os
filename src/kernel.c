@@ -19,10 +19,11 @@ void kernel_main() {
     idt_init();
 
     println("Hello world!");
-    println(itoa(-5000000));
-    println(itoa(-500000000));
-    println(itoa(500));
-    println(itoa(44320));
-    println(itoa(10));
-    println(itoa(0));
+    int n1 = atoi("1234");
+    int n2 = atoi("-1234");
+    int n3 = atoi("100");
+    int n4 = atoi("540");
+
+    println(itoa(n1 + n2));
+    println(itoa(n3 + n4));
 }
