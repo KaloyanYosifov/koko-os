@@ -62,11 +62,11 @@ void terminal_init() {
     terminal_clear();
 }
 
-void print_char(char character) {
+void print_char(const char character) {
 	terminal_write_char(character, 0xF);
 }
 
-void print(char* msg) {
+void print(const char* msg) {
     size_t msg_len = strlen(msg);
 
     for (size_t i = 0; i < msg_len; i++) {
@@ -74,7 +74,7 @@ void print(char* msg) {
     }
 }
 
-void println(char* msg) {
+void println(const char* msg) {
     print(msg);
 
     terminal_newline();

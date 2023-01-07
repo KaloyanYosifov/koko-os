@@ -1,17 +1,19 @@
 #include "heap.h"
 #include "memory.h"
 #include "../terminal.h"
+#include "../../kernel.h"
+#include "../../config.h"
+#include "../../errors.h"
 
 static int heap_validate_table(void* start, void* end, Heap_Table* table) {
     HEAP_SIZE_TYPE expected_size = (HEAP_SIZE_TYPE)(end - start);
     HEAP_SIZE_TYPE expected_blocks = expected_size / KERNEL_HEAP_BLOCK_SIZE;
 
     if (table->total != expected_blocks) {
-        // TODO: use a constant
-        return -1;
+        return HEAP_TABLE_LOW_BYTES_AVAILABLE;
     }
 
-    return 0;
+    return OK;
 }
 
 static bool heap_validate_alignment(void* address) {
@@ -20,29 +22,26 @@ static bool heap_validate_alignment(void* address) {
 
 int heap_create_table(Heap_Table* table, void* table_start_address, size_t available_bytes) {
     if (available_bytes < KERNEL_HEAP_BLOCK_SIZE) {
-        // TODO: use a constant
-        return -1;
+        return HEAP_AVAILABLE_MEMORY_LESS_THAN_BLOCK;
     }
 
     table->entries = (HEAP_ENTRY*) table_start_address;
     table->total = available_bytes / KERNEL_HEAP_BLOCK_SIZE;
 
-    return 0;
+    return OK;
 }
 
 int heap_create(Heap* heap, void* start_address, Heap_Table* table) {
     void* end_addr = start_address + (table->total * KERNEL_HEAP_BLOCK_SIZE);
 
     if (!heap_validate_alignment(start_address) || !heap_validate_alignment(end_addr)) {
-        println("err");
-        // TODO: use a constant
-        return -1;
+        return HEAP_MEMORY_NOT_ALIGNED;
     }
 
-    if (heap_validate_table(start_address, end_addr, table) < 0) {
-        println("err 2");
-        // TODO: use a constant
-        return -2;
+
+    int validation_result = heap_validate_table(start_address, end_addr, table);
+    if (validation_result != OK) {
+        return validation_result;
     }
 
     memset(heap, 0, sizeof(Heap));
@@ -52,7 +51,7 @@ int heap_create(Heap* heap, void* start_address, Heap_Table* table) {
     size_t sizeo_of_table_entries = sizeof(HEAP_ENTRY) * table->total;
     memset(table->entries, HEAP_ENTRY_FREE, sizeo_of_table_entries);
 
-    return 0;
+    return OK;
 }
 
 static HEAP_SIZE_TYPE heap_align_amount_of_bytes_requested(HEAP_SIZE_TYPE amount_of_bytes) {
@@ -112,9 +111,7 @@ static Memory_Details heap_request_memory(Heap* heap, HEAP_SIZE_TYPE amount_of_b
     }
 
     if (block_count != required_blocks) {
-        println("Not enough memory");
-
-        while (true) {}
+        panic("Not enough memory");
     }
 
     Memory_Details details;
@@ -151,9 +148,7 @@ void heap_free(Heap* heap, void* address) {
     // if we have our start address is bigger than the address passed
     // it should be an invalid case, as the address cannot be less than the starting point
     if (heap->start_address > address) {
-        println("Invalid address is going to be freed!");
-
-        while (true) {}
+        panic("Invalid address is going to be freed!");
     }
 
     HEAP_SIZE_TYPE start_block = 0;
@@ -168,9 +163,7 @@ void heap_free(Heap* heap, void* address) {
     HEAP_ENTRY* entry = &table->entries[start_block];
 
     if (!heap_entry_is_first(*entry)) {
-        println("Address is not the beginning of an address block!");
-
-        while (true) {}
+        panic("Address is not the beginning of an address block!");
     }
 
     HEAP_SIZE_TYPE current_block = start_block;
