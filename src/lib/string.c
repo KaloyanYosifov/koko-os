@@ -27,7 +27,6 @@ char* itoa(int number) {
         number *= -1;
     }
 
-    uint8_t zero_char = 48;
     uint8_t leading_zeroes = 0;
 
     unsigned int length = 0;
@@ -56,18 +55,18 @@ char* itoa(int number) {
     unsigned int index = 0;
 
     if (is_negative > 0) {
-        string[index++] = 45;
+        string[index++] = CHAR_MINUS;
     }
 
     while (reversed > 0) {
         uint8_t n = reversed % 10;
         reversed = reversed / 10;
 
-        string[index++] = (char) (zero_char + n);
+        string[index++] = (char) (CHAR_0 + n);
     }
 
     while (leading_zeroes > 0) {
-        string[index++] = zero_char;
+        string[index++] = CHAR_0;
 
         leading_zeroes--;
     }
