@@ -37,6 +37,14 @@ void* malloc(size_t amount_of_bytes) {
     return heap_malloc(&heap, amount_of_bytes);
 }
 
+void* zalloc(size_t amount_of_bytes) {
+    void* ptr = heap_malloc(&heap, amount_of_bytes);
+
+    memset(ptr, 0x00, amount_of_bytes);
+
+    return ptr;
+}
+
 void free(void* address) {
     heap_free(&heap, address);
 }

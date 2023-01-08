@@ -1,5 +1,4 @@
 #include "idt.h"
-#include "../kernel.h"
 #include "../config.h"
 #include "../lib/io/io.h"
 #include "../lib/terminal.h"
@@ -52,6 +51,4 @@ void idt_init() {
     idt_set(KEYBOARD_INTERRUPT, &idt_keyboard);
 
     idt_load(&idtr_descriptor);
-
-    kernel_enable_interrupts();
 }
