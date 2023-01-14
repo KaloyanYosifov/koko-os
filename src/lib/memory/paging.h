@@ -1,6 +1,7 @@
 #ifndef PAGING_H
 #define PAGING_H
 
+#include <stdbool.h>
 #include <stdint.h>
 
 // flags
@@ -23,9 +24,17 @@ typedef struct paging_chunk {
     PAGE_DIRECTORY* directory;
 } Paging_Chunk;
 
+typedef struct paging_index_info {
+    int8_t error_code;
+    uint32_t table_index;
+    uint32_t directory_index;
+} Paging_Index_Info;
+
 void paging_enable_paging();
 
 Paging_Chunk* paging_create_chunk(uint8_t flags);
 void paging_switch_directory(PAGE_DIRECTORY* directory);
+int paging_set(PAGE_DIRECTORY* directory, void* virtual_address, PAGE_TABLE_ENTRY flags);
+bool paging_is_aligned(void* address);
 
 #endif

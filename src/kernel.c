@@ -20,7 +20,6 @@ void panic(const char* message) {
 void init_kernel_paging() {
     kernel_chunk = paging_create_chunk(PAGING_PAGE_IS_WRITABLE | PAGING_PAGE_IS_PRESENT | PAGING_PAGE_ALLOW_ACCESS_TO_ALL);
     paging_switch_directory(kernel_chunk->directory);
-    paging_enable_paging();
 }
 
 void kernel_main() {
@@ -28,17 +27,22 @@ void kernel_main() {
 
     terminal_init();
     memory_init();
-    init_kernel_paging();
     idt_init();
+    init_kernel_paging();
+
+    char* ptr = zalloc(4096);
+    paging_set(kernel_chunk->directory, (void*) 0x1000, ((uint32_t)ptr) | PAGING_PAGE_ALLOW_ACCESS_TO_ALL | PAGING_PAGE_IS_PRESENT | PAGING_PAGE_IS_WRITABLE);
+
+    paging_enable_paging();
+
+    char* ptr2 = (char*) 0x1000;
+    ptr2[0] = 'H';
+    ptr2[1] = 'E';
+    println(ptr2);
+
+
+    println(ptr);
+
 
     kernel_enable_interrupts();
-
-    println("Hello world!");
-    int n1 = atoi("1234");
-    int n2 = atoi("-1234");
-    int n3 = atoi("100");
-    int n4 = atoi("540");
-
-    println(itoa(n1 + n2));
-    println(itoa(n3 + n4));
 }
