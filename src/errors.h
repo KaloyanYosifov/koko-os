@@ -9,4 +9,6 @@
 
 #define INVALID_ARGUMENT -50
 
+#define DISK_INVALID_DISK -1
+
 #endif

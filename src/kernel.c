@@ -29,12 +29,14 @@ void kernel_main() {
 
     terminal_init();
     memory_init();
+    disk_init();
     idt_init();
     init_kernel_paging();
     paging_enable_paging();
     kernel_enable_interrupts();
 
-    Disk_Sector_Info info = disk_read_sector(0, 1);
+    Disk* disk = disk_get(DISK_REAL_DISK_TYPE);
+    Disk_Sector_Info info = disk_read_block(disk, 0, 1);
 
     println("test");
     println((char*) info.buffer);

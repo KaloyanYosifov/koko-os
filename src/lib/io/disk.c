@@ -6,9 +6,12 @@
 
 #include <stddef.h>
 
+Disk primary_disk;
+
 Disk_Sector_Info disk_read_sector(unsigned int lba, uint8_t total) {
     Disk_Sector_Info info;
-    info.buffer = NULL;
+
+    memset(&info, (int) NULL, sizeof(Disk_Sector_Info));
 
     if (total == 0) {
         info.error_code = INVALID_ARGUMENT;
@@ -43,4 +46,33 @@ Disk_Sector_Info disk_read_sector(unsigned int lba, uint8_t total) {
     }
 
     return info;
+}
+
+void disk_init() {
+    primary_disk.type = DISK_REAL_DISK_TYPE;
+    primary_disk.sector_size = KERNEL_DEFAULT_DISK_SECTOR_SIZE;
+}
+
+Disk* disk_get(DISK_TYPE type) {
+    // TODO: support multiple disks
+    if (type != DISK_REAL_DISK_TYPE) {
+       return NULL;
+    }
+
+    return &primary_disk;
+}
+
+Disk_Sector_Info disk_read_block(Disk* disk, unsigned int lba, uint8_t total) {
+    Disk_Sector_Info info;
+
+    memset(&info, (int) NULL, sizeof(Disk_Sector_Info));
+
+    // TODO: support multiple disks
+    if (disk != &primary_disk) {
+        info.error_code = DISK_INVALID_DISK;
+
+        return info;
+    }
+
+    return disk_read_sector(lba, total);
 }
