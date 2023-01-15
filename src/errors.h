@@ -7,4 +7,6 @@
 
 #define PAGING_MEMORY_NOT_ALIGNED -1
 
+#define INVALID_ARGUMENT -50
+
 #endif

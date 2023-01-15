@@ -1,7 +1,9 @@
 #include "kernel.h"
+#include "config.h"
 #include "stdbool.h"
 #include "idt/idt.h"
 #include "lib/string.h"
+#include "lib/io/disk.h"
 #include "lib/terminal.h"
 #include "lib/memory/memory.h"
 #include "lib/memory/paging.h"
@@ -29,20 +31,11 @@ void kernel_main() {
     memory_init();
     idt_init();
     init_kernel_paging();
-
-    char* ptr = zalloc(4096);
-    paging_set(kernel_chunk->directory, (void*) 0x1000, ((uint32_t)ptr) | PAGING_PAGE_ALLOW_ACCESS_TO_ALL | PAGING_PAGE_IS_PRESENT | PAGING_PAGE_IS_WRITABLE);
-
     paging_enable_paging();
-
-    char* ptr2 = (char*) 0x1000;
-    ptr2[0] = 'H';
-    ptr2[1] = 'E';
-    println(ptr2);
-
-
-    println(ptr);
-
-
     kernel_enable_interrupts();
+
+    Disk_Sector_Info info = disk_read_sector(0, 1);
+
+    println("test");
+    println((char*) info.buffer);
 }
