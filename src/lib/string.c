@@ -1,9 +1,8 @@
 #include "string.h"
+
 #include "memory/memory.h"
 
 #include "../kernel.h"
-
-#include <stdint.h>
 
 size_t strlen(const char* str) {
     uint16_t len = 0;
@@ -64,6 +63,15 @@ char* itoa(int number) {
     return string;
 }
 
+
+uint8_t is_digit(char c) {
+    return c >= 48 && c <= 57;
+}
+
+int8_t get_digit(char c) {
+    return c - CHAR_0;
+}
+
 int atoi(const char* number) {
     size_t length = strlen(number);
 
@@ -82,15 +90,11 @@ int atoi(const char* number) {
 
         assembled_number *= 10;
 
-        uint8_t n = number[i] - CHAR_0;
-
-        // if we do not have base 10 digits
-        // panic
-        if (n < 0 || n > 9) {
+        if (!is_digit(number[i])) {
             panic("String is not a number!");
         }
 
-        assembled_number += n;
+        assembled_number += get_digit(number[i]);
     }
 
     // if we need the number to be negative, convert it
@@ -99,4 +103,43 @@ int atoi(const char* number) {
     }
 
     return assembled_number;
+}
+
+int8_t str_cmp(const char* str1, const char* str2) {
+    size_t str1_len = strlen(str1);
+    size_t str2_len = strlen(str2);
+
+    if (str1_len > str2_len) {
+        return 1;
+    } else if (str1_len < str2_len) {
+        return -1;
+    }
+
+    size_t i = 0;
+
+    while (i < str1_len) {
+        if (str1[i] > str2[i]) {
+            return 1;
+        } else if (str1[i] < str2[i]) {
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+char* str_slice(const char* str, size_t start, size_t end) {
+    if (end > start) {
+        return "";
+    }
+
+    char* slice_str = malloc(sizeof(char) * (start + end) + 1);
+
+    for (;start < end; start++) {
+        slice_str[start] = str[start];
+    }
+
+    slice_str[start] = '\0';
+
+    return slice_str;
 }
