@@ -7,6 +7,7 @@
 #include "lib/terminal.h"
 #include "lib/memory/memory.h"
 #include "lib/memory/paging.h"
+#include "lib/fs/path_parser.h"
 
 extern void kernel_enable_interrupts();
 extern void kernel_disable_interrupts();
@@ -35,9 +36,7 @@ void kernel_main() {
     paging_enable_paging();
     kernel_enable_interrupts();
 
-    Disk* disk = disk_get(DISK_REAL_DISK_TYPE);
-    Disk_Sector_Info info = disk_read_block(disk, 0, 1);
+    Path_Parser_Info info = path_parser_parse_path("0:/testing/test.txt");
 
-    println("test");
-    println((char*) info.buffer);
+    println(info.root->part->next->name);
 }

@@ -7,7 +7,7 @@
 size_t strlen(const char* str) {
     uint16_t len = 0;
 
-    while (str[len] != '\0') {
+    while (str[len] != STR_NULL_TERMINATE) {
         len++;
     }
 
@@ -58,7 +58,7 @@ char* itoa(int number) {
         string[index--] = (char) (CHAR_0 + n);
     }
 
-    string[length - 1] = '\0';
+    string[length - 1] = STR_NULL_TERMINATE;
 
     return string;
 }
@@ -115,9 +115,7 @@ int8_t str_cmp(const char* str1, const char* str2) {
         return -1;
     }
 
-    size_t i = 0;
-
-    while (i < str1_len) {
+    for (unsigned int i = 0; i < str1_len; i++) {
         if (str1[i] > str2[i]) {
             return 1;
         } else if (str1[i] < str2[i]) {
@@ -128,18 +126,55 @@ int8_t str_cmp(const char* str1, const char* str2) {
     return 0;
 }
 
-char* str_slice(const char* str, size_t start, size_t end) {
-    if (end > start) {
+char* str_copy(const char* str) {
+    size_t str_size = strlen(str);
+
+    if (str_size <= 0) {
         return "";
     }
 
-    char* slice_str = malloc(sizeof(char) * (start + end) + 1);
+    char* copy_str = malloc(sizeof(char) * (str_size + 1));
+    unsigned int index = 0;
 
-    for (;start < end; start++) {
-        slice_str[start] = str[start];
+    while (str[index] != STR_NULL_TERMINATE) {
+        copy_str[index] = str[index];
+        index++;
     }
 
-    slice_str[start] = '\0';
+    copy_str[index] = STR_NULL_TERMINATE;
+
+    return copy_str;
+}
+
+char* str_slice(const char* str, size_t start, size_t end) {
+    if (start > end || start < 0 || end < 0) {
+        return str_copy(str);
+    }
+
+    char* slice_str = malloc(sizeof(char) * (start + end) + 1);
+    unsigned int index = 0;
+
+    for (;start < end; start++) {
+        slice_str[index++] = str[start];
+    }
+
+    slice_str[index] = STR_NULL_TERMINATE;
 
     return slice_str;
+}
+
+int str_index_of(const char* str, char needle) {
+    if (str[0] == needle) {
+        return 0;
+    }
+
+    size_t size_of_str = strlen(str);
+
+    for (unsigned int i = 0; i < size_of_str; i++) {
+        if (str[i] == needle) {
+            return i;
+        }
+    }
+
+    return -1;
 }

@@ -2,9 +2,10 @@
 
 #include "../string.h"
 #include "../../config.h"
+#include "../../errors.h"
 #include "../memory/memory.h"
 
-bool path_parser_validate_path(const char* path) {
+bool path_parser_is_path_valid(const char* path) {
     if (strlen(path) > KERNEL_MAX_PATH_SIZE) {
         return false;
     }
@@ -26,4 +27,65 @@ bool path_parser_validate_path(const char* path) {
     return true;
 }
 
-// TODO: create a function to parse whole path and return struct
+Path_Parser_Info path_parser_parse_path(const char* path) {
+    Path_Parser_Info info;
+
+    memset(&info, 0, sizeof(Path_Parser_Info));
+
+    if (!path_parser_is_path_valid(path)) {
+        info.err_code = FS_PATH_INVALID;
+
+        return info;
+    }
+
+    uint8_t drive_no = get_digit(path[0]);
+    char* rest_of_path = str_slice(path, 3, strlen(path));
+    int separator_index = str_index_of(rest_of_path, '/');
+    Path_Part* part = NULL;
+    Path_Part* first_part = NULL;
+
+    do {
+        Path_Part* previous_part = part;
+        part = malloc(sizeof(Path_Part));
+
+        part->name = str_slice(rest_of_path, 0, separator_index);
+        part->next = previous_part;
+
+        if (previous_part) {
+            previous_part->next = part;
+        }
+
+        if (!first_part) {
+            first_part = part;
+        }
+
+        char* new_path = str_slice(rest_of_path, separator_index + 1, strlen(rest_of_path));
+
+        free(rest_of_path);
+
+        rest_of_path = new_path;
+
+        separator_index = str_index_of(rest_of_path, '/');
+    } while (separator_index >= 0);
+
+    // TODO: figure out a way to squeeze the logic from while
+    // instead of creating another branch here
+    if (strlen(rest_of_path) > 0) {
+        Path_Part* previous_part = part;
+        part = malloc(sizeof(Path_Part));
+
+        part->name = rest_of_path;
+        part->next = NULL;
+
+        previous_part->next = part;
+    }
+
+    Path_Root* root = malloc(sizeof(Path_Root));
+
+    root->driver_no = drive_no;
+    root->part = first_part;
+
+    info.root = root;
+
+    return info;
+}

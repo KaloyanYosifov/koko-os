@@ -11,4 +11,6 @@
 
 #define DISK_INVALID_DISK -1
 
+#define FS_PATH_INVALID -1
+
 #endif
