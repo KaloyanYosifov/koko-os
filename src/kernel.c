@@ -40,5 +40,5 @@ void kernel_main() {
 
     println(info.root->part->next->next->next->next->name);
 
-    path_parser_free(info.root);
+    path_parser_free_root(info.root);
 }

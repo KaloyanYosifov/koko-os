@@ -90,16 +90,23 @@ Path_Parser_Info path_parser_parse_path(const char* path) {
     return info;
 }
 
-void path_parser_free(Path_Root* root) {
-    Path_Part* part = root->part;
-
-    while (part) {
-        Path_Part* previous_part = part;
-        part = previous_part->next;
-
-        free(previous_part->name);
-        free(previous_part);
+void path_parser_free_part(Path_Part* part) {
+    if (!part) {
+        return;
     }
+
+    path_parser_free_part(part->next);
+
+    free(part->name);
+    free(part);
+}
+
+void path_parser_free_root(Path_Root* root) {
+    if (!root) {
+        return;
+    }
+
+    path_parser_free_part(root->part);
 
     free(root);
 }
