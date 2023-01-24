@@ -36,7 +36,9 @@ void kernel_main() {
     paging_enable_paging();
     kernel_enable_interrupts();
 
-    Path_Parser_Info info = path_parser_parse_path("0:/testing/test.txt");
+    Path_Parser_Info info = path_parser_parse_path("0:/testing/nested/really-nested/deep/test.txt");
 
-    println(info.root->part->next->name);
+    println(info.root->part->next->next->next->next->name);
+
+    path_parser_free(info.root);
 }

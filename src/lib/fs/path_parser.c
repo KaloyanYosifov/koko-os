@@ -89,3 +89,17 @@ Path_Parser_Info path_parser_parse_path(const char* path) {
 
     return info;
 }
+
+void path_parser_free(Path_Root* root) {
+    Path_Part* part = root->part;
+
+    while (part) {
+        Path_Part* previous_part = part;
+        part = previous_part->next;
+
+        free(previous_part->name);
+        free(previous_part);
+    }
+
+    free(root);
+}
