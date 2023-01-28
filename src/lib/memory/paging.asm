@@ -20,7 +20,7 @@ paging_enable_paging:
     push ebp
     mov ebp, esp
 
-    .enable_paging
+    .enable_paging:
         mov eax, cr0
         or eax, 0x80000001
         mov cr0, eax

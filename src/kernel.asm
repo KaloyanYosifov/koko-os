@@ -29,11 +29,11 @@ _start:
 
     jmp $
 
-kernel_disable_interrupts;
+kernel_disable_interrupts:
     cli
     ret
 
-kernel_enable_interrupts;
+kernel_enable_interrupts:
     sti
     ret
 

@@ -8,6 +8,7 @@
 #include "lib/memory/memory.h"
 #include "lib/memory/paging.h"
 #include "lib/fs/path_parser.h"
+#include "lib/fs/disk_stream.h"
 
 extern void kernel_enable_interrupts();
 extern void kernel_disable_interrupts();
@@ -36,9 +37,9 @@ void kernel_main() {
     paging_enable_paging();
     kernel_enable_interrupts();
 
-    Path_Parser_Info info = path_parser_parse_path("0:/testing/nested/really-nested/deep/test.txt");
+    Disk_Stream* stream = disk_stream_new(0);
+    disk_stream_seek(stream, 0x520);
+    Disk_Stream_Read_Info info = disk_stream_read(stream, 536);
 
-    println(info.root->part->next->next->next->next->name);
-
-    path_parser_free_root(info.root);
+    println(info.buffer);
 }
