@@ -21,10 +21,15 @@ build: clean ./bin/boot.bin ./bin/kernel.bin
 	dd if=./bin/boot.bin >> $(BINARY)
 	dd if=./bin/kernel.bin >> $(BINARY)
 	# put enought sectors to acommodate for a big kernel if it happens in the future
-	dd if=/dev/zero bs=512 count=100 >> $(BINARY)
+	dd if=/dev/zero bs=1048576 count=16 >> $(BINARY)
 
 run:
 	$(VIRTUAL_MACHINE) -hda $(BINARY)
+
+add_file_to_os_bin:
+	docker run --name koko_os_docker --rm -d --privileged -v $$(pwd)/$(BINDIR):/app fedora:32 bash -c "cd /app && mkdir -p /tmp/testing && sudo mount -t vfat ./os.bin /tmp/testing && sleep 99999"
+	docker exec koko_os_docker bash -c "echo 'Hello there cruel world!' >> /tmp/testing/hello.txt"
+	docker stop koko_os_docker
 
 clean:
 	rm -rf bin

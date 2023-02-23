@@ -5,12 +5,31 @@ CODE_SEG equ gdt_code - gdt_start
 DATA_SEG equ gdt_data - gdt_start
 
 ; used to fix the BPB (BIOS Parameter Block) so that it does not overwrite our code
-_boot:
-    jmp short _preinit
-    nop
+jmp short _preinit
+nop
 
-    ; fill 33 empty bytes to cover for BPB
-    times 33 db 0
+; FAT16 labels
+OEMID db 'KOKOOS  '
+BytesPerSector dw 512
+SectorsPerCluster db 128
+ReservedSectors dw 200
+FatCopies db 2
+RootDirEntries dw 64
+NumSectors dw 0
+MediaType db 0xf8
+SectorsPerFat dw 256
+SectorsPerTrack dw 32
+NumberOfHeads dw 64
+HiddenSectors dd 0
+SectorsBig dd 0x773594
+
+; Extended BPB
+DriveNumber db 128
+WinNTBit db 0
+Signature db 41
+VolumeID dd 0xD105
+VolumeIDString db 'KOKOOS BOOT'
+FileSystemType db 'FAT16   '
 
 _preinit:
     jmp 0x00:_initialize ; sets the code segment to 0x7c0 with the jump, since our origin is now 0
