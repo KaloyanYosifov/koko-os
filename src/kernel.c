@@ -7,6 +7,7 @@
 #include "lib/terminal.h"
 #include "lib/memory/memory.h"
 #include "lib/memory/paging.h"
+#include "lib/fs/file.h"
 #include "lib/fs/path_parser.h"
 #include "lib/fs/disk_stream.h"
 
@@ -35,11 +36,8 @@ void kernel_main() {
     idt_init();
     init_kernel_paging();
     paging_enable_paging();
+    fs_init();
     kernel_enable_interrupts();
 
-    Disk_Stream* stream = disk_stream_new(0);
-    disk_stream_seek(stream, 0x520);
-    Disk_Stream_Read_Info info = disk_stream_read(stream, 536);
-
-    println(info.buffer);
+    println("Hello KOKO!");
 }

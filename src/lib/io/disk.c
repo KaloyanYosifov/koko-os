@@ -51,6 +51,7 @@ Disk_Sector_Info disk_read_sector(unsigned int lba, uint8_t total_sectors_to_rea
 void disk_init() {
     primary_disk.type = DISK_REAL_DISK_TYPE;
     primary_disk.sector_size = KERNEL_DEFAULT_DISK_SECTOR_SIZE;
+    primary_disk.fs = fs_resolve(&primary_disk);
 }
 
 Disk* disk_get(DISK_TYPE type) {

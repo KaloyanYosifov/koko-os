@@ -2,6 +2,7 @@
 #define DISK_H
 
 #include <stdint.h>
+#include "../fs/file.h"
 
 #define DISK_SECTOR_BYTES 512
 #define DISK_SECTOR_WORDS DISK_SECTOR_BYTES / 2
@@ -12,6 +13,7 @@ typedef uint32_t DISK_TYPE;
 typedef struct disk {
     DISK_TYPE type;
     unsigned int sector_size;
+    struct file_system* fs;
 } Disk;
 
 typedef struct disk_sector_info {
