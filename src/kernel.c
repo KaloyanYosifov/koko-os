@@ -32,11 +32,11 @@ void kernel_main() {
 
     terminal_init();
     memory_init();
+    fs_init();
     disk_init();
     idt_init();
     init_kernel_paging();
     paging_enable_paging();
-    fs_init();
     kernel_enable_interrupts();
 
     println("Hello KOKO!");
