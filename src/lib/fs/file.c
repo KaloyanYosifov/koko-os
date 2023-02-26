@@ -1,5 +1,6 @@
 #include "file.h"
 
+#include "./fat16/fat16.h"
 #include "../../kernel.h"
 #include "../memory/memory.h"
 #include "../../config.h"
@@ -10,7 +11,7 @@ File_Descriptor* file_descriptors[KERNEL_MAX_FILE_DESCRIPTORS];
 
 static int8_t fs_get_free_file_system() {
     for (uint8_t i = 0; i < KERNEL_MAX_FILESYSTEMS; i++) {
-        if (file_systems[i] != NULL) {
+        if (file_systems[i] == NULL) {
             return i;
         }
     }
@@ -37,6 +38,7 @@ void fs_init() {
     memset(file_descriptors, 0, sizeof(file_descriptors));
 
     // load static file systems here
+    fs_insert_filesystem(fat16_init());
 }
 
 File_System* fs_resolve(Disk* disk) {

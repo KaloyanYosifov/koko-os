@@ -126,6 +126,18 @@ int8_t str_cmp(const char* str1, const char* str2) {
     return 0;
 }
 
+void str_ref_copy(char* to, const char* from) {
+    char* result = to;
+
+    while (*from != 0) {
+        *result = *from;
+        from++;
+        result++;
+    }
+
+    *result = STR_NULL_TERMINATE;
+}
+
 char* str_copy(const char* str) {
     size_t str_size = strlen(str);
 

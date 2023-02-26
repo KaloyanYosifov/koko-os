@@ -39,5 +39,8 @@ void kernel_main() {
     paging_enable_paging();
     kernel_enable_interrupts();
 
-    println("Hello KOKO!");
+    char test[50];
+    str_ref_copy(test, "Hello there world!");
+
+    println(test);
 }

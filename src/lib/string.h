@@ -15,6 +15,7 @@ int atoi(const char* number);
 uint8_t is_digit(char c);
 int8_t get_digit(char c);
 int8_t str_cmp(const char* str1, const char* str2);
+void str_ref_copy(char* to, const char* from);
 char* str_copy(const char* str);
 char* str_slice(const char* str, size_t start, size_t end);
 int str_index_of(const char* str, char needle);
