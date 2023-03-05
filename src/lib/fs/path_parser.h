@@ -15,7 +15,7 @@ typedef struct path_root {
 } Path_Root;
 
 typedef struct path_parser_info {
-    uint8_t err_code;
+    int16_t err_code;
     Path_Root* root;
 } Path_Parser_Info;
 

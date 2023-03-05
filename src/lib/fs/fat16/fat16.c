@@ -4,6 +4,7 @@
 #include "../../string.h"
 #include "../../../config.h"
 #include "../../../errors.h"
+#include "../../memory/memory.h"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -12,6 +13,8 @@
 #define KERNEL_FAT16_FAT_ENTRY_SIZE 2
 #define KERNEL_FAT16_BAD_SECTOR 0xFF7
 #define KERNEL_FAT16_UNUSED 0
+#define KERNEL_FAT16_END_OF_BLOCK 0
+#define KERNEL_FAT16_EMPTY_ITEM 0xe5
 
 // fat item attributes
 typedef enum fat_item_type {
@@ -118,22 +121,163 @@ typedef struct fst_private {
     Disk_Stream* directory_stream;
 } Fat_Private;
 
-void* fat16_open(Disk* disk, Path_Part* path, FILE_MODE mode) {
-    return NULL;
-}
-
-int fat16_resolve(Disk* disk) {
-    if (disk->type == DISK_REAL_DISK_TYPE) {
-        return OK;
-    }
-
-    return INVALID_ARGUMENT;
-}
+void* fat16_open(Disk* disk, Path_Part* path, FILE_MODE mode);
+int fat16_resolve(Disk* disk);
 
 File_System fat16_file_system = {
     .resolve = fat16_resolve,
     .open = fat16_open
 };
+
+Fat_Private* fat16_init_private_data(Disk* disk) {
+    Fat_Private* private = zalloc(sizeof(Fat_Private));
+
+    private->fat_read_stream = disk_stream_new(disk->id);
+    private->directory_stream = disk_stream_new(disk->id);
+    private->cluster_read_stream = disk_stream_new(disk->id);
+
+    return private;
+}
+
+void fat16_reset_private_disk_streams(Fat_Private* private_data) {
+    disk_stream_reset(private_data->fat_read_stream);
+    disk_stream_reset(private_data->directory_stream);
+    disk_stream_reset(private_data->cluster_read_stream);
+}
+
+unsigned int fat16_sector_to_absolute_pos(Disk* disk, unsigned int sector)
+{
+    return sector * disk->sector_size;
+}
+
+int fat16_get_total_items_for_directory(Disk* disk, unsigned int start_sector) {
+    Fat_Directory_Item item;
+
+    memset(&item, 0, sizeof(Fat_Directory_Item));
+
+    unsigned int directory_start_pos = fat16_sector_to_absolute_pos(disk, start_sector);
+    Disk_Stream* stream = ((Fat_Private*)disk->fs_private)->directory_stream;
+
+    if (disk_stream_seek(stream, directory_start_pos) != OK) {
+        return DISK_FAIL_SET_STREAM_POS;
+    }
+
+    int items_count = 0;
+    while(true) {
+        if (disk_stream_read(stream, &item, sizeof(Fat_Directory_Item)) != OK) {
+            return DISK_FAIL_TO_READ_STREAM;
+        }
+
+        // we reached the end
+        if (item.filename[0] == KERNEL_FAT16_END_OF_BLOCK) {
+            break;
+        }
+
+        // empty item found
+        if (item.filename[0] == KERNEL_FAT16_EMPTY_ITEM) {
+            continue;
+        }
+
+        items_count++;
+    }
+
+    return items_count;
+}
+
+int fat16_get_root_directory(Disk* disk, Fat_Private* private_data) {
+    Main_Fat_Header* primary_header = &private_data->header.primary_header;
+    int root_directory_sector = (primary_header->fat_copies * primary_header->sectors_per_fat) + primary_header->reserved_sectors;
+    int root_directory_entries = primary_header->root_dir_entries;
+    int root_directory_size = (root_directory_entries * sizeof(Fat_Directory_Item));
+    int total_sectors = root_directory_size / disk->sector_size;
+
+    if (root_directory_size % disk->sector_size != 0) {
+        total_sectors += 1;
+    }
+
+    int total_items = fat16_get_total_items_for_directory(disk, root_directory_sector);
+
+    if (total_items < 0) {
+        return INVALID_ARGUMENT;
+    }
+
+    Fat_Directory_Item* dir = zalloc(root_directory_size);
+
+    if (!dir) {
+        return HEAP_MEMORY_NOT_MEMORY_LEFT;
+    }
+
+    Disk_Stream* stream = private_data->directory_stream;
+
+    if (disk_stream_seek(stream, fat16_sector_to_absolute_pos(disk, root_directory_sector)) != OK) {
+        return DISK_FAIL_SET_STREAM_POS;
+    }
+
+    if (disk_stream_read(stream, dir, sizeof(Fat_Directory_Item)) != OK) {
+        return DISK_FAIL_TO_READ_STREAM;
+    }
+
+    Fat_Directory* primary_directory = &private_data->root_directory;
+
+    primary_directory->item = dir;
+    primary_directory->total = total_items;
+    primary_directory->sector_pos = root_directory_sector;
+    primary_directory->ending_sector_pos = root_directory_sector + (root_directory_size / disk->sector_size);
+
+    return OK;
+}
+
+int fat16_resolve(Disk* disk) {
+    int result = 0;
+    Fat_Private* fat_private = fat16_init_private_data(disk);
+
+    disk->fs_private = fat_private;
+    disk->fs = &fat16_file_system;
+
+    Disk_Stream* stream = disk_stream_new(disk->id);
+
+    if (!stream) {
+        result = SYSTEM_FAIL;
+        goto fin;
+    }
+
+    if (disk_stream_read(stream, &fat_private->header, sizeof(Fat_Header)) != OK) {
+        result = SYSTEM_FAIL;
+        goto fin;
+    }
+
+    if (fat_private->header.shared.extended_header.boot_signature != KERNEL_FAT16_SIGNATURE) {
+        result = WRONG_FILESYSTEM;
+        goto fin;
+    }
+
+    if (fat16_get_root_directory(disk, fat_private) != OK)
+    {
+        result = SYSTEM_FAIL;
+
+        goto fin;
+    }
+
+fin:
+    if (stream) {
+        disk_stream_close(stream);
+    }
+
+    if (result < 0) {
+        free(fat_private);
+
+        disk->fs = NULL;
+        disk->fs_private = NULL;
+    }
+
+    fat16_reset_private_disk_streams(fat_private);
+
+    return result;
+}
+
+void* fat16_open(Disk* disk, Path_Part* path, FILE_MODE mode) {
+    return NULL;
+}
 
 File_System* fat16_init() {
     str_ref_copy(fat16_file_system.name, "FAT 16");

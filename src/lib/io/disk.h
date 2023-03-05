@@ -11,9 +11,13 @@
 typedef uint32_t DISK_TYPE;
 
 typedef struct disk {
+    uint8_t id;
     DISK_TYPE type;
     unsigned int sector_size;
     struct file_system* fs;
+
+    // private data of the filesystem
+    void* fs_private;
 } Disk;
 
 typedef struct disk_sector_info {

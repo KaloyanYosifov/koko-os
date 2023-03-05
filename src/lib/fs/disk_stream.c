@@ -1,5 +1,6 @@
 #include "disk_stream.h"
 
+#include "../terminal.h"
 #include "../../config.h"
 #include "../../errors.h"
 #include "../memory/memory.h"
@@ -22,23 +23,20 @@ Disk_Stream* disk_stream_new(DISK_TYPE id) {
 
 // create disk read function
 
-void disk_stream_seek(Disk_Stream* stream, unsigned int pos) {
+int disk_stream_seek(Disk_Stream* stream, unsigned int pos) {
     stream->pos = pos;
+
+    return OK;
 }
 
-Disk_Stream_Read_Info disk_stream_read(Disk_Stream* stream, unsigned int total_bytes) {
-    Disk_Stream_Read_Info info;
-
-    memset(&info, 0, sizeof(Disk_Stream_Read_Info));
-
+int disk_stream_read(Disk_Stream* stream, void* buffer, unsigned int total_bytes) {
     if (total_bytes == 0) {
-        info.error_code = INVALID_ARGUMENT;
-
-        return info;
+        return INVALID_ARGUMENT;
     }
 
+    char* copy_buffer = buffer;
+
     unsigned int buffer_index = 0;
-    char* buffer = malloc(sizeof(char) * total_bytes + 1);
 
     do {
         unsigned int current_total_read = total_bytes > KERNEL_DEFAULT_DISK_SECTOR_SIZE ? KERNEL_DEFAULT_DISK_SECTOR_SIZE : total_bytes;
@@ -47,9 +45,7 @@ Disk_Stream_Read_Info disk_stream_read(Disk_Stream* stream, unsigned int total_b
         Disk_Sector_Info sector_info = disk_read_block(stream->disk, sector, 1);
 
         if (sector_info.error_code != OK) {
-            info.error_code = INVALID_ARGUMENT;
-
-            return info;
+            return INVALID_ARGUMENT;
         }
 
         for (unsigned int i = 0; i < current_total_read; i++) {
@@ -62,7 +58,7 @@ Disk_Stream_Read_Info disk_stream_read(Disk_Stream* stream, unsigned int total_b
                 break;
             }
 
-            buffer[buffer_index++] = ((char*)sector_info.buffer)[offset+i];
+            copy_buffer[buffer_index++] = ((char*)sector_info.buffer)[offset+i];
         }
 
         free(sector_info.buffer);
@@ -82,8 +78,13 @@ Disk_Stream_Read_Info disk_stream_read(Disk_Stream* stream, unsigned int total_b
         stream->pos += KERNEL_DEFAULT_DISK_SECTOR_SIZE - (stream->pos % KERNEL_DEFAULT_DISK_SECTOR_SIZE);
     } while (total_bytes > 0);
 
-    buffer[buffer_index] = '\0';
-    info.buffer = buffer;
+    return OK;
+}
 
-    return info;
+void disk_stream_close(Disk_Stream* stream) {
+    free(stream);
+}
+
+void disk_stream_reset(Disk_Stream* stream) {
+    stream->pos = 0;
 }

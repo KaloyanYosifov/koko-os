@@ -25,7 +25,7 @@ typedef struct paging_chunk {
 } Paging_Chunk;
 
 typedef struct paging_index_info {
-    int8_t error_code;
+    int16_t error_code;
     uint32_t table_index;
     uint32_t directory_index;
 } Paging_Index_Info;
