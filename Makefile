@@ -27,9 +27,10 @@ run:
 	$(VIRTUAL_MACHINE) -hda $(BINARY)
 
 add_file_to_os_bin:
-	docker run --name koko_os_docker --rm -d --privileged -v $$(pwd)/$(BINDIR):/app fedora:32 bash -c "cd /app && mkdir -p /tmp/testing && sudo mount -t vfat ./os.bin /tmp/testing && sleep 99999"
-	docker exec koko_os_docker bash -c "echo 'Hello there cruel world!' >> /tmp/testing/hello.txt"
-	docker stop koko_os_docker &
+	docker run --name koko_os_docker --rm -d --privileged -v $$(pwd)/$(BINDIR):/app fedora:32 bash -c "cd /app && mkdir -p /app/test-data && mkdir -p /tmp/testing && sudo mount -t vfat ./os.bin /tmp/testing && sleep 99999"
+	docker cp "$$(pwd)/test-data" koko_os_docker:/app/
+	docker exec koko_os_docker bash -c "cp -R /app/test-data/* /tmp/testing/"
+	docker stop koko_os_docker & > /dev/null
 
 clean:
 	rm -rf bin
