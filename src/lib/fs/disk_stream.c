@@ -42,9 +42,10 @@ int disk_stream_read(Disk_Stream* stream, void* buffer, unsigned int total_bytes
         unsigned int current_total_read = total_bytes > KERNEL_DEFAULT_DISK_SECTOR_SIZE ? KERNEL_DEFAULT_DISK_SECTOR_SIZE : total_bytes;
         unsigned int sector = stream->pos / KERNEL_DEFAULT_DISK_SECTOR_SIZE;
         unsigned int offset = stream->pos % KERNEL_DEFAULT_DISK_SECTOR_SIZE;
-        Disk_Sector_Info sector_info = disk_read_block(stream->disk, sector, 1);
+        char local_buffer[KERNEL_DEFAULT_DISK_SECTOR_SIZE];
 
-        if (sector_info.error_code != OK) {
+        if (disk_read_block(stream->disk, local_buffer, sector, 1) != OK) {
+            // TODO: use better error code
             return INVALID_ARGUMENT;
         }
 
@@ -58,10 +59,8 @@ int disk_stream_read(Disk_Stream* stream, void* buffer, unsigned int total_bytes
                 break;
             }
 
-            copy_buffer[buffer_index++] = ((char*)sector_info.buffer)[offset+i];
+            copy_buffer[buffer_index++] = local_buffer[offset+i];
         }
-
-        free(sector_info.buffer);
 
         // if the total is less than a sector size
         // set it to 0 indicating that we have finished

@@ -8,19 +8,10 @@
 
 Disk primary_disk;
 
-Disk_Sector_Info disk_read_sector(unsigned int lba, uint8_t total_sectors_to_read) {
-    Disk_Sector_Info info;
-
-    memset(&info, (int) NULL, sizeof(Disk_Sector_Info));
-
+int disk_read_sector(char* buffer, unsigned int lba, uint8_t total_sectors_to_read) {
     if (total_sectors_to_read == 0) {
-        info.error_code = INVALID_ARGUMENT;
-
-        return info;
+        return INVALID_ARGUMENT;
     }
-
-    info.error_code = OK;
-    info.buffer = zalloc(total_sectors_to_read * DISK_SECTOR_BYTES);
 
     outb(0x01F6, (lba >> 24) | 0xE0);
     outb(0x01F2, total_sectors_to_read);
@@ -37,7 +28,7 @@ Disk_Sector_Info disk_read_sector(unsigned int lba, uint8_t total_sectors_to_rea
             c = insb(0x01F7);
         }
 
-        uint16_t* ptr = info.buffer;
+        uint16_t* ptr = (uint16_t*) buffer;
 
         for (unsigned int i = 0; i < DISK_SECTOR_WORDS; i++) {
             *ptr = insw(0x01F0);
@@ -45,7 +36,7 @@ Disk_Sector_Info disk_read_sector(unsigned int lba, uint8_t total_sectors_to_rea
         }
     }
 
-    return info;
+    return OK;
 }
 
 void disk_init() {
@@ -64,17 +55,10 @@ Disk* disk_get(DISK_TYPE type) {
     return &primary_disk;
 }
 
-Disk_Sector_Info disk_read_block(Disk* disk, unsigned int lba, uint8_t total_sectors_to_read) {
-    Disk_Sector_Info info;
-
-    memset(&info, (int) NULL, sizeof(Disk_Sector_Info));
-
-    // TODO: support multiple disks
+int disk_read_block(Disk* disk, char* buffer, unsigned int lba, uint8_t total_sectors_to_read) {
     if (disk != &primary_disk) {
-        info.error_code = DISK_INVALID_DISK;
-
-        return info;
+        return DISK_INVALID_DISK;
     }
 
-    return disk_read_sector(lba, total_sectors_to_read);
+    return disk_read_sector(buffer, lba, total_sectors_to_read);
 }

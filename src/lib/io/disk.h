@@ -20,13 +20,8 @@ typedef struct disk {
     void* fs_private;
 } Disk;
 
-typedef struct disk_sector_info {
-   int16_t error_code;
-   uint16_t* buffer;
-} Disk_Sector_Info;
-
 void disk_init();
 Disk* disk_get(DISK_TYPE type);
-Disk_Sector_Info disk_read_block(Disk* disk, unsigned int lba, uint8_t total);
+int disk_read_block(Disk* disk, char* bufffer, unsigned int lba, uint8_t total);
 
 #endif
