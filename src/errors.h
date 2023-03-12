@@ -18,5 +18,6 @@
 #define DISK_FAIL_SET_STREAM_POS -202
 
 #define FS_PATH_INVALID -501
+#define FS_CANNOT_GET_FILE -502
 
 #endif

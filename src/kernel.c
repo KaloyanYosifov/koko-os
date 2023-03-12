@@ -43,4 +43,12 @@ void kernel_main() {
     str_ref_copy(test, "Hello there world!");
 
     println(test);
+
+    FD_INDEX fd = fs_open("0:/main.txt", FIEL_MODE_READ);
+
+    if (fd) {
+        println("File loaded!");
+    }
+
+    print_number(fd);
 }

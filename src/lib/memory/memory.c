@@ -45,6 +45,18 @@ void* zalloc(size_t amount_of_bytes) {
     return ptr;
 }
 
+void memcpy(void* dest, void* src, size_t length) {
+    uint8_t* d_temp = dest;
+    uint8_t* s_temp = src;
+
+    while (length-- > 0) {
+        *d_temp = *s_temp;
+
+        d_temp++;
+        s_temp++;
+    }
+}
+
 void free(void* address) {
     heap_free(&heap, address);
 }

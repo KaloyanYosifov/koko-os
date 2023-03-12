@@ -105,6 +105,22 @@ int atoi(const char* number) {
     return assembled_number;
 }
 
+char str_to_lower(char c) {
+    int8_t code = (int8_t) c;
+
+    if (code >= 97 && code <= 122) {
+        return c;
+    }
+
+    // if we are not in the UPPERCASE boundary
+    // return character as is
+    if (code < 65 && code > 90) {
+        return c;
+    }
+
+    return (char) code + 32;
+}
+
 int8_t str_cmp(const char* str1, const char* str2) {
     size_t str1_len = strlen(str1);
     size_t str2_len = strlen(str2);
@@ -119,6 +135,30 @@ int8_t str_cmp(const char* str1, const char* str2) {
         if (str1[i] > str2[i]) {
             return 1;
         } else if (str1[i] < str2[i]) {
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+int8_t str_icmp(const char* str1, const char* str2) {
+    size_t str1_len = strlen(str1);
+    size_t str2_len = strlen(str2);
+
+    if (str1_len > str2_len) {
+        return 1;
+    } else if (str1_len < str2_len) {
+        return -1;
+    }
+
+    for (unsigned int i = 0; i < str1_len; i++) {
+        char str1_c = str_to_lower(str1[i]);
+        char str2_c = str_to_lower(str2[i]);
+
+        if (str1_c > str2_c) {
+            return 1;
+        } else if (str1_c < str2_c) {
             return -1;
         }
     }

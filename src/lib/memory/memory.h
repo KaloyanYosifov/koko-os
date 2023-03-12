@@ -11,5 +11,6 @@ void memory_init();
 void* malloc(size_t amount_of_bytes);
 void* zalloc(size_t amount_of_bytes);
 void free(void* address);
+void memcpy(void* dest, void* src, size_t length);
 
 #endif
