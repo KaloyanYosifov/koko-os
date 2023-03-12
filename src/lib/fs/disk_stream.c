@@ -70,11 +70,7 @@ int disk_stream_read(Disk_Stream* stream, void* buffer, unsigned int total_bytes
             total_bytes -= KERNEL_DEFAULT_DISK_SECTOR_SIZE;
         }
 
-        // move pos to the start position of next sector
-        // we do this because, if we read a byte in sector 0 with offset 288 and we want to read 512 bytes
-        // then we need to take 224 bytes from the next sector
-        // therefor pos must start from the start of the next sector
-        stream->pos += KERNEL_DEFAULT_DISK_SECTOR_SIZE - (stream->pos % KERNEL_DEFAULT_DISK_SECTOR_SIZE);
+        stream->pos += current_total_read;
     } while (total_bytes > 0);
 
     return OK;
