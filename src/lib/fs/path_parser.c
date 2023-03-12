@@ -27,15 +27,9 @@ bool path_parser_is_path_valid(const char* path) {
     return true;
 }
 
-Path_Parser_Info path_parser_parse_path(const char* path) {
-    Path_Parser_Info info;
-
-    memset(&info, 0, sizeof(Path_Parser_Info));
-
+Path_Root* path_parser_parse_path(const char* path) {
     if (!path_parser_is_path_valid(path)) {
-        info.err_code = FS_PATH_INVALID;
-
-        return info;
+        return NULL;
     }
 
     uint8_t drive_no = get_digit(path[0]);
@@ -85,9 +79,7 @@ Path_Parser_Info path_parser_parse_path(const char* path) {
     root->driver_no = drive_no;
     root->part = first_part;
 
-    info.root = root;
-
-    return info;
+    return root;
 }
 
 void path_parser_free_part(Path_Part* part) {

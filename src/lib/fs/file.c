@@ -19,6 +19,33 @@ static int8_t fs_get_free_file_system() {
     return -1;
 }
 
+static File_Descriptor* fs_new_file_descriptor() {
+    for (unsigned int i = 0; i < KERNEL_MAX_FILE_DESCRIPTORS; i++) {
+        if (file_descriptors[i] != NULL) {
+            continue;
+        }
+
+        File_Descriptor* fd = zalloc(sizeof(File_Descriptor));
+        // we always start from 1 instead of 0 for file descriptor index
+        fd->index = i + 1;
+
+        file_descriptors[i] = fd;
+
+        return fd;
+    }
+
+    return NULL;
+}
+
+static File_Descriptor* fs_find_file_descriptor(FD_INDEX index) {
+    if (index <= 0 || index >= KERNEL_MAX_FILE_DESCRIPTORS) {
+        return NULL;
+    }
+
+    return file_descriptors[index - 1];
+}
+
+
 void fs_insert_filesystem(File_System* fs) {
     if (fs == NULL) {
         panic("No file system entered as argument!");
@@ -52,31 +79,39 @@ File_System* fs_resolve(Disk* disk) {
 }
 
 FD_INDEX fs_open(char* filename, FILE_MODE mode) {
-    return NOT_IMPLEMENTED;
-}
+    // get path and validate if it is correct. Not 0:/
+    Path_Root* root = path_parser_parse_path(filename);
 
-static File_Descriptor* fs_new_file_descriptor() {
-    for (unsigned int i = 0; i < KERNEL_MAX_FILE_DESCRIPTORS; i++) {
-        if (file_descriptors[i] != NULL) {
-            continue;
-        }
-
-        File_Descriptor* fd = zalloc(sizeof(File_Descriptor));
-        // we always start from 1 instead of 0 for file descriptor index
-        fd->index = i + 1;
-
-        file_descriptors[i] = fd;
-
-        return fd;
+    if (!root || !root->part || !root->part->next) {
+        return NULL_FILE_DESCRIPTOR;
     }
 
-    return NULL;
-}
+    // get disk and validate if it is correct
+    // or check if disk has a filesystem
+    Disk* disk = disk_get(root->driver_no);
 
-static File_Descriptor* fs_find_file_descriptor(FD_INDEX index) {
-    if (index <= 0 || index >= KERNEL_MAX_FILE_DESCRIPTORS) {
-        return NULL;
+    if (!disk || !disk->fs) {
+        return NULL_FILE_DESCRIPTOR;
     }
 
-    return file_descriptors[index - 1];
+    // call fs open and check for error
+    void* file_data = disk->fs->open(disk, root->part, mode);
+
+    if (!file_data) {
+        return NULL_FILE_DESCRIPTOR;
+    }
+
+    // create a file descriptor and check if it is ok
+    File_Descriptor* fd = fs_new_file_descriptor();
+
+    if (!fd) {
+        return NULL_FILE_DESCRIPTOR;
+    }
+
+    // assign relevant values to file descriptor
+    fd->fs = disk->fs;
+    fd->disk = disk;
+    fd->private_data = file_data;
+
+    return fd->index;
 }

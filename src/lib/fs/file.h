@@ -5,6 +5,8 @@
 #include "path_parser.h"
 #include "../io/disk.h"
 
+#define NULL_FILE_DESCRIPTOR 0
+
 typedef struct disk Disk;
 
 typedef uint16_t FD_INDEX;
@@ -19,7 +21,6 @@ typedef enum file_mode {
     FIEL_MODE_READ,
     FIEL_MODE_WRITE,
     FIEL_MODE_APPEND,
-    FIEL_MODE_INVALID
 } FILE_MODE;
 
 typedef void* (*FS_OPEN_FUNCTION)(Disk* disk, Path_Part* path, FILE_MODE mode);
@@ -34,6 +35,7 @@ typedef struct file_system {
 typedef struct file_descriptor {
     FD_INDEX index;
     File_System* fs;
+    Disk* disk;
 
     // Used by the underline filesystem
     void* private_data;

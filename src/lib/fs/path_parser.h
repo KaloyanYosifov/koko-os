@@ -14,13 +14,8 @@ typedef struct path_root {
     Path_Part* part;
 } Path_Root;
 
-typedef struct path_parser_info {
-    int16_t err_code;
-    Path_Root* root;
-} Path_Parser_Info;
-
 bool path_parser_is_path_valid(const char* path);
-Path_Parser_Info path_parser_parse_path(const char* path);
+Path_Root* path_parser_parse_path(const char* path);
 void path_parser_free_root(Path_Root* root);
 
 #endif

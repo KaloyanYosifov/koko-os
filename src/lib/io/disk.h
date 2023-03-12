@@ -8,7 +8,7 @@
 #define DISK_SECTOR_WORDS DISK_SECTOR_BYTES / 2
 #define DISK_REAL_DISK_TYPE 0
 
-typedef uint32_t DISK_TYPE;
+typedef uint8_t DISK_TYPE;
 
 typedef struct disk {
     uint8_t id;
