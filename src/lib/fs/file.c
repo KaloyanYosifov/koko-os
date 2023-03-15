@@ -82,7 +82,7 @@ FD_INDEX fs_open(char* filename, FILE_MODE mode) {
     // get path and validate if it is correct. Not 0:/
     Path_Root* root = path_parser_parse_path(filename);
 
-    if (!root || !root->part || !root->part->next) {
+    if (!root || !root->part || !root->part->name) {
         return NULL_FILE_DESCRIPTOR;
     }
 
