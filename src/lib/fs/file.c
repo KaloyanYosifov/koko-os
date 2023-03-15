@@ -97,7 +97,7 @@ FD_INDEX fs_open(char* filename, FILE_MODE mode) {
     // call fs open and check for error
     void* file_data = disk->fs->open(disk, root->part, mode);
 
-    if (!file_data) {
+    if (IS_ERROR(ERROR_I(file_data))) {
         return NULL_FILE_DESCRIPTOR;
     }
 

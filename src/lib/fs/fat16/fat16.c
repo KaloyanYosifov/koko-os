@@ -214,7 +214,7 @@ int fat16_get_root_directory(Disk* disk, Fat_Private* private_data) {
         return DISK_FAIL_SET_STREAM_POS;
     }
 
-    if (disk_stream_read(stream, dir, sizeof(Fat_Directory_Item)) != OK) {
+    if (disk_stream_read(stream, dir, root_directory_size) != OK) {
         return DISK_FAIL_TO_READ_STREAM;
     }
 
@@ -585,12 +585,14 @@ void* fat16_open(Disk* disk, Path_Part* path, FILE_MODE mode) {
     descriptor->item = fat16_get_directory_entry(disk, path);
 
     if (!descriptor->item) {
+        free(descriptor);
+
         return ERROR(FS_CANNOT_GET_FILE);
     }
 
     descriptor->pos = 0;
 
-    return NULL;
+    return descriptor;
 }
 
 File_System* fat16_init() {

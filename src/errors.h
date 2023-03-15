@@ -1,6 +1,10 @@
 #ifndef ERRORS_H
 #define ERRORS_H
 
+#define ERROR(value) (void*)value
+#define ERROR_I(value) (int)value
+#define IS_ERROR(value) ((int)value < 0)
+
 #define HEAP_MEMORY_NOT_ALIGNED -301
 #define HEAP_TABLE_LOW_BYTES_AVAILABLE -302
 #define HEAP_AVAILABLE_MEMORY_LESS_THAN_BLOCK -303
