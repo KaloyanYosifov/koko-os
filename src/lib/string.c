@@ -198,21 +198,20 @@ char* str_copy(const char* str) {
     return copy_str;
 }
 
-char* str_slice(const char* str, size_t start, size_t end) {
+void str_slice(char* output, const char* str, size_t start, size_t end) {
     if (start > end || start < 0 || end < 0) {
-        return str_copy(str);
+        str_ref_copy(output, str);
+
+        return;
     }
 
-    char* slice_str = malloc(sizeof(char) * (start + end) + 1);
     unsigned int index = 0;
 
-    for (;start < end; start++) {
-        slice_str[index++] = str[start];
+    for (;start <= end; start++) {
+        output[index++] = str[start];
     }
 
-    slice_str[index] = STR_NULL_TERMINATE;
-
-    return slice_str;
+    output[index] = STR_NULL_TERMINATE;
 }
 
 int str_index_of(const char* str, char needle) {

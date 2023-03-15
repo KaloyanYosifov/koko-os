@@ -39,11 +39,6 @@ void kernel_main() {
     paging_enable_paging();
     kernel_enable_interrupts();
 
-    char test[50];
-    str_ref_copy(test, "Hello there world!");
-
-    println(test);
-
     FD_INDEX fd = fs_open("0:/main.txt", FIEL_MODE_READ);
 
     if (fd) {

@@ -86,6 +86,15 @@ static void* heap_get_address_from_block(Heap* heap, HEAP_SIZE_TYPE start_block)
 }
 
 static Memory_Details heap_request_memory(Heap* heap, HEAP_SIZE_TYPE amount_of_bytes) {
+    if (amount_of_bytes <= 0) {
+        Memory_Details details;
+        details.start_address = NULL;
+        details.start_block = 0;
+        details.end_block = 0;
+
+        return details;
+    }
+
     HEAP_SIZE_TYPE required_blocks = amount_of_bytes / KERNEL_HEAP_BLOCK_SIZE;
     HEAP_SIZE_TYPE current_block = 0;
     HEAP_SIZE_TYPE block_count = 0;
