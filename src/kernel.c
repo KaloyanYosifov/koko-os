@@ -42,7 +42,10 @@ void kernel_main() {
     FD_INDEX fd = fs_open("0:/main.txt", FIEL_MODE_READ);
 
     if (fd) {
-        println("File loaded!");
+        char buffer[83];
+        fs_read(buffer, 82, 1, fd);
+
+        println(buffer);
     }
 
     print_number(fd);

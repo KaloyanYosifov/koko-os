@@ -122,12 +122,14 @@ typedef struct fst_private {
     Disk_Stream* directory_stream;
 } Fat_Private;
 
-void* fat16_open(Disk* disk, Path_Part* path, FILE_MODE mode);
 int fat16_resolve(Disk* disk);
+void* fat16_open(Disk* disk, Path_Part* path, FILE_MODE mode);
+int fat16_read(Disk* disk, char* out, void* descriptor, uint32_t size, uint32_t nmemb);
 
 File_System fat16_file_system = {
     .resolve = fat16_resolve,
-    .open = fat16_open
+    .open = fat16_open,
+    .read = fat16_read
 };
 
 Fat_Private* fat16_init_private_data(Disk* disk) {
@@ -384,12 +386,12 @@ static int fat16_read_internal_from_stream(Disk* disk, Disk_Stream* stream, unsi
 
     // error
     if (cluster < 0) {
-        return cluster;
+        return INVALID_ARGUMENT;
     }
 
     unsigned int offset_from_cluster = offset % size_of_cluster_bytes;
     unsigned int start_sector = fat16_cluster_to_sector(private, cluster);
-    unsigned int start_pos = fat16_sector_to_absolute_pos(disk, start_sector) * offset_from_cluster;
+    unsigned int start_pos = fat16_sector_to_absolute_pos(disk, start_sector) + offset_from_cluster;
     unsigned int total_to_read = total > size_of_cluster_bytes ? size_of_cluster_bytes : total;
 
     if (disk_stream_seek(stream, start_pos) != OK) {
@@ -601,4 +603,22 @@ File_System* fat16_init() {
     str_ref_copy(fat16_file_system.name, "FAT 16");
 
     return &fat16_file_system;
+}
+
+int fat16_read(Disk* disk, char* out, void* descriptor, uint32_t size, uint32_t nmemb) {
+    Fat_File_Descriptor* desc = descriptor;
+    Fat_Directory_Item* item = desc->item->item;
+    unsigned int offset = desc->pos;
+    char* temp_out = out;
+
+    for (uint32_t i = 0; i < nmemb; i++) {
+        if(fat16_read_internal(disk, fat16_get_first_cluster(item), offset, size, temp_out) != OK) {
+            return DISK_FAIL_TO_READ_STREAM;
+        }
+
+        temp_out += size;
+        offset += size;
+    }
+
+    return OK;
 }

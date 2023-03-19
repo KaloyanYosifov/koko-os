@@ -127,7 +127,7 @@ int fs_read (void* ptr, uint32_t size, uint32_t nmemb, FD_INDEX fd) {
         return FS_INVALID_FILE_DESCRIPTOR;
     }
 
-    descriptor->fs->read(descriptor->disk, descriptor->private_data, size, nmemb, (char*) ptr);
+    descriptor->fs->read(descriptor->disk, (char*) ptr, descriptor->private_data, size, nmemb);
 
     return OK;
 }

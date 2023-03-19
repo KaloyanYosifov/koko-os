@@ -23,9 +23,9 @@ typedef enum file_mode {
     FIEL_MODE_APPEND,
 } FILE_MODE;
 
-typedef void* (*FS_OPEN_FUNCTION)(Disk* disk, Path_Part* path, FILE_MODE mode);
-typedef int (*FS_READ_FUNCTION)(Disk* disk, void* private_data, uint32_t size, uint32_t nmemb, char* out);
 typedef int (*FS_RESOLVE_FUNCTION)(Disk* disk);
+typedef void* (*FS_OPEN_FUNCTION)(Disk* disk, Path_Part* path, FILE_MODE mode);
+typedef int (*FS_READ_FUNCTION)(Disk* disk, char* out, void* private_data, uint32_t size, uint32_t nmemb);
 
 typedef struct file_system {
     FS_OPEN_FUNCTION open;
