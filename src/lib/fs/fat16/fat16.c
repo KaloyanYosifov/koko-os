@@ -425,8 +425,10 @@ void fat16_free_directory(Fat_Directory* directory) {
 void fat16_free_item(Fat_Item* item) {
     if (item->type == FAT_ITEM_TYPE_DIRECTORY) {
         fat16_free_directory(item->directory);
+        free(item);
     } else if (item->type == FAT_ITEM_TYPE_FILE) {
         free(item->item);
+        free(item);
     } else {
         panic("Invalid fat16 file");
     }
