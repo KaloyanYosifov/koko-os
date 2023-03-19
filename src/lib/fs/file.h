@@ -24,11 +24,13 @@ typedef enum file_mode {
 } FILE_MODE;
 
 typedef void* (*FS_OPEN_FUNCTION)(Disk* disk, Path_Part* path, FILE_MODE mode);
+typedef int (*FS_READ_FUNCTION)(Disk* disk, void* private_data, uint32_t size, uint32_t nmemb, char* out);
 typedef int (*FS_RESOLVE_FUNCTION)(Disk* disk);
 
 typedef struct file_system {
     FS_OPEN_FUNCTION open;
     FS_RESOLVE_FUNCTION resolve;
+    FS_READ_FUNCTION read;
     char name[20];
 } File_System;
 
@@ -43,6 +45,7 @@ typedef struct file_descriptor {
 
 void fs_init();
 FD_INDEX fs_open(char* filename, FILE_MODE mode);
+int fs_read (void* ptr, uint32_t size, uint32_t nmemb, FD_INDEX fd);
 void fs_insert_filesystem(File_System* fs);
 File_System* fs_resolve(Disk* disk);
 

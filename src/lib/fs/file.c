@@ -115,3 +115,19 @@ FD_INDEX fs_open(char* filename, FILE_MODE mode) {
 
     return fd->index;
 }
+
+int fs_read (void* ptr, uint32_t size, uint32_t nmemb, FD_INDEX fd) {
+    if (size == 0 || nmemb == 0 || fd <= 0) {
+        return INVALID_ARGUMENT;
+    }
+
+    File_Descriptor* descriptor = fs_find_file_descriptor(fd);
+
+    if (!descriptor) {
+        return FS_INVALID_FILE_DESCRIPTOR;
+    }
+
+    descriptor->fs->read(descriptor->disk, descriptor->private_data, size, nmemb, (char*) ptr);
+
+    return OK;
+}

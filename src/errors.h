@@ -23,5 +23,6 @@
 
 #define FS_PATH_INVALID -501
 #define FS_CANNOT_GET_FILE -502
+#define FS_INVALID_FILE_DESCRIPTOR -503
 
 #endif
