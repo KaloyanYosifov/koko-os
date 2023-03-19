@@ -350,6 +350,15 @@ static int fat16_get_fat_entry(Disk* disk, unsigned int cluster) {
     return result;
 }
 
+static int fat16_is_entry_invalid(int entry) {
+    return entry == 0xFF8 ||
+        entry == 0xFFF ||
+        entry == 0xFF0 ||
+        entry == 0xFF6 ||
+        entry == 0x00 ||
+        entry == KERNEL_FAT16_BAD_SECTOR;
+}
+
 static int fat16_get_cluster_for_offset(Disk* disk, unsigned int cluster, int offset) {
     unsigned int size_of_cluster_bytes = fat16_get_cluster_size(disk);
     unsigned cluster_ahead = offset / size_of_cluster_bytes;
@@ -357,16 +366,7 @@ static int fat16_get_cluster_for_offset(Disk* disk, unsigned int cluster, int of
     for (int i = 0; i< cluster_ahead; i++) {
         int entry = fat16_get_fat_entry(disk, cluster);
 
-        if (entry == 0xFF8 || entry == 0xFFF) {
-            // we are at the last entry;
-
-            // TODO: change error
-            return SYSTEM_FAIL;
-        } else if (entry == KERNEL_FAT16_BAD_SECTOR) {
-            return SYSTEM_FAIL;
-        } else if (entry == 0xFF0 || entry == 0xFF6) {
-            return SYSTEM_FAIL;
-        } else if (entry == 0x00) {
+        if (fat16_is_entry_invalid(entry)) {
             return SYSTEM_FAIL;
         }
 
