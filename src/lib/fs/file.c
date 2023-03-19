@@ -37,6 +37,23 @@ static File_Descriptor* fs_new_file_descriptor() {
     return NULL;
 }
 
+static int fs_free_file_descriptor(FD_INDEX fd) {
+    if (fd <= 0) {
+        return FS_INVALID_FILE_DESCRIPTOR;
+    }
+
+    File_Descriptor* desc = file_descriptors[fd - 1];
+
+    if (desc == NULL) {
+        return INVALID_ARGUMENT;
+    }
+
+    free(desc);
+    file_descriptors[fd - 1] = NULL;
+
+    return OK;
+}
+
 static File_Descriptor* fs_find_file_descriptor(FD_INDEX index) {
     if (index <= 0 || index >= KERNEL_MAX_FILE_DESCRIPTORS) {
         return NULL;
@@ -159,5 +176,11 @@ int fs_close(FD_INDEX fd) {
         return FS_INVALID_FILE_DESCRIPTOR;
     }
 
-    return descriptor->disk->fs->close(descriptor->private_data);
+    if (descriptor->disk->fs->close(descriptor->private_data) != OK) {
+        return SYSTEM_FAIL;
+    }
+
+    fs_free_file_descriptor(fd);
+
+    return OK;
 }

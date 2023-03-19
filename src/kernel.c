@@ -43,14 +43,18 @@ void kernel_main() {
 
     if (fd) {
         File_Stat stat;
-        fs_stat(fd, &stat);
+        int code = fs_stat(fd, &stat);
+
+        print_number(code);
 
         char* buffer = zalloc((sizeof(char) * stat.size) + 1);
-
         fs_read(buffer, fd, stat.size, 1);
-
         println(buffer);
-
         free(buffer);
+
+        fs_close(fd);
+
+        code = fs_stat(fd, &stat);
+        print_number(code);
     }
 }

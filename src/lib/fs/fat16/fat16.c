@@ -127,12 +127,14 @@ int fat16_stat(Disk* disk, void* descriptor, File_Stat* stat);
 void* fat16_open(Disk* disk, Path_Part* path, FILE_MODE mode);
 int fat16_seek(void* descriptor, uint32_t offset, SEEK_MODE mode);
 int fat16_read(Disk* disk, char* out, void* descriptor, uint32_t size, uint32_t nmemb);
+int fat16_close(void* descriptor);
 
 File_System fat16_file_system = {
     .open = fat16_open,
     .seek = fat16_seek,
     .read = fat16_read,
     .stat = fat16_stat,
+    .close = fat16_close,
     .resolve = fat16_resolve
 };
 
@@ -570,6 +572,7 @@ static Fat_Item* fat16_get_directory_entry(Disk* disk, Path_Part* path) {
         }
 
         Fat_Item* tmp_item = fat16_find_item_in_directory(disk, current_item->directory, next_part->name);
+        // we free as we are cloning the item instead of getting the reference
         fat16_free_item(current_item);
         current_item = tmp_item;
         next_part = next_part->next;
@@ -685,6 +688,15 @@ int fat16_stat(Disk* disk, void* descriptor, File_Stat* stat) {
     if (item->attributes & FAT_FILE_ATTRIBUTES_READ_ONLY) {
         stat->flags = FILE_STAT_READ_ONLY;
     }
+
+    return OK;
+}
+
+int fat16_close(void* descriptor) {
+    Fat_File_Descriptor* desc = descriptor;
+
+    fat16_free_item(desc->item);
+    free(desc);
 
     return OK;
 }
