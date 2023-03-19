@@ -142,6 +142,16 @@ int fs_seek(FD_INDEX fd, uint32_t offset, SEEK_MODE mode) {
     return descriptor->disk->fs->seek(descriptor->private_data, offset, mode);
 }
 
+int fs_stat(FD_INDEX fd, File_Stat* stat) {
+    File_Descriptor* descriptor = fs_find_file_descriptor(fd);
+
+    if (!descriptor) {
+        return FS_INVALID_FILE_DESCRIPTOR;
+    }
+
+    return descriptor->disk->fs->stat(descriptor->disk, descriptor->private_data, stat);
+}
+
 int fs_close(FD_INDEX fd) {
     File_Descriptor* descriptor = fs_find_file_descriptor(fd);
 

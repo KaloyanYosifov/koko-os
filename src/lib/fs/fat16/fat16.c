@@ -123,6 +123,7 @@ typedef struct fst_private {
 } Fat_Private;
 
 int fat16_resolve(Disk* disk);
+int fat16_stat(Disk* disk, void* descriptor, File_Stat* stat);
 void* fat16_open(Disk* disk, Path_Part* path, FILE_MODE mode);
 int fat16_seek(void* descriptor, uint32_t offset, SEEK_MODE mode);
 int fat16_read(Disk* disk, char* out, void* descriptor, uint32_t size, uint32_t nmemb);
@@ -131,6 +132,7 @@ File_System fat16_file_system = {
     .open = fat16_open,
     .seek = fat16_seek,
     .read = fat16_read,
+    .stat = fat16_stat,
     .resolve = fat16_resolve
 };
 
@@ -663,6 +665,25 @@ int fat16_seek(void* descriptor, uint32_t offset, SEEK_MODE mode) {
             break;
         default:
             return INVALID_ARGUMENT;
+    }
+
+    return OK;
+}
+
+int fat16_stat(Disk* disk, void* descriptor, File_Stat* stat) {
+    Fat_File_Descriptor* desc = descriptor;
+
+    if (desc->item->type != FAT_ITEM_TYPE_FILE) {
+        return INVALID_ARGUMENT;
+    }
+
+    Fat_Directory_Item* item = desc->item->item;
+
+    stat->flags = 0x00;
+    stat->size = item->filesize;
+
+    if (item->attributes & FAT_FILE_ATTRIBUTES_READ_ONLY) {
+        stat->flags = FILE_STAT_READ_ONLY;
     }
 
     return OK;

@@ -42,11 +42,15 @@ void kernel_main() {
     FD_INDEX fd = fs_open("0:/main.txt", FIEL_MODE_READ);
 
     if (fd) {
-        char buffer[83];
-        fs_read(buffer, fd, 82, 1);
+        File_Stat stat;
+        fs_stat(fd, &stat);
+
+        char* buffer = zalloc((sizeof(char) * stat.size) + 1);
+
+        fs_read(buffer, fd, stat.size, 1);
 
         println(buffer);
-    }
 
-    print_number(fd);
+        free(buffer);
+    }
 }
