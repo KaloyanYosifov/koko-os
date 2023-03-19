@@ -43,7 +43,7 @@ void kernel_main() {
 
     if (fd) {
         char buffer[83];
-        fs_read(buffer, 82, 1, fd);
+        fs_read(buffer, fd, 82, 1);
 
         println(buffer);
     }

@@ -25,7 +25,7 @@ typedef enum file_mode {
 
 typedef int (*FS_RESOLVE_FUNCTION)(Disk* disk);
 typedef void* (*FS_OPEN_FUNCTION)(Disk* disk, Path_Part* path, FILE_MODE mode);
-typedef int (*FS_SEEK_FUNCTION)(void* private_data, unsigned int offset, SEEK_MODE mode);
+typedef int (*FS_SEEK_FUNCTION)(void* private_data, uint32_t offset, SEEK_MODE mode);
 typedef int (*FS_CLOSE_FUNCTION)(void* private_data);
 typedef int (*FS_READ_FUNCTION)(Disk* disk, char* out, void* private_data, uint32_t size, uint32_t nmemb);
 

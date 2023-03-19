@@ -124,12 +124,14 @@ typedef struct fst_private {
 
 int fat16_resolve(Disk* disk);
 void* fat16_open(Disk* disk, Path_Part* path, FILE_MODE mode);
+int fat16_seek(void* descriptor, uint32_t offset, SEEK_MODE mode);
 int fat16_read(Disk* disk, char* out, void* descriptor, uint32_t size, uint32_t nmemb);
 
 File_System fat16_file_system = {
-    .resolve = fat16_resolve,
     .open = fat16_open,
-    .read = fat16_read
+    .seek = fat16_seek,
+    .read = fat16_read,
+    .resolve = fat16_resolve
 };
 
 Fat_Private* fat16_init_private_data(Disk* disk) {
@@ -607,7 +609,13 @@ File_System* fat16_init() {
 
 int fat16_read(Disk* disk, char* out, void* descriptor, uint32_t size, uint32_t nmemb) {
     Fat_File_Descriptor* desc = descriptor;
+
+    if (desc->item->type != FAT_ITEM_TYPE_FILE) {
+        return INVALID_ARGUMENT;
+    }
+
     Fat_Directory_Item* item = desc->item->item;
+
     unsigned int offset = desc->pos;
     char* temp_out = out;
 
@@ -618,6 +626,43 @@ int fat16_read(Disk* disk, char* out, void* descriptor, uint32_t size, uint32_t 
 
         temp_out += size;
         offset += size;
+    }
+
+    return OK;
+}
+
+int fat16_seek(void* descriptor, uint32_t offset, SEEK_MODE mode) {
+    Fat_File_Descriptor* desc = descriptor;
+
+    if (desc->item->type != FAT_ITEM_TYPE_FILE) {
+        return INVALID_ARGUMENT;
+    }
+
+    Fat_Directory_Item* item = desc->item->item;
+
+    if (offset >= item->filesize) {
+        // TODO: use a better error
+        return SYSTEM_FAIL;
+    }
+
+    switch(mode) {
+        case SEEK_MODE_SET:
+            desc->pos = offset;
+
+            break;
+        case SEEK_MODE_END:
+            return NOT_IMPLEMENTED;
+        case SEEK_MODE_CUR:
+            if (desc->pos + offset >= item->filesize) {
+                // TODO: use a better error
+                return SYSTEM_FAIL;
+            }
+
+            desc->pos += offset;
+
+            break;
+        default:
+            return INVALID_ARGUMENT;
     }
 
     return OK;
