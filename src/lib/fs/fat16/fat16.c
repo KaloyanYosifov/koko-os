@@ -358,13 +358,17 @@ static int fat16_get_fat_entry(Disk* disk, unsigned int cluster) {
     return result;
 }
 
-static int fat16_is_entry_invalid(int entry) {
+static bool fat16_is_entry_invalid(int entry) {
     return entry == 0xFF8 ||
         entry == 0xFFF ||
         entry == 0xFF0 ||
         entry == 0xFF6 ||
         entry == 0x00 ||
         entry == KERNEL_FAT16_BAD_SECTOR;
+}
+
+static bool fat16_is_entry_free(int entry) {
+    return entry == 0x00;
 }
 
 static int fat16_get_cluster_for_offset(Disk* disk, unsigned int cluster, int offset) {
@@ -610,6 +614,49 @@ File_System* fat16_init() {
     str_ref_copy(fat16_file_system.name, "FAT 16");
 
     return &fat16_file_system;
+}
+
+static unsigned int fat16_get_cluster_root_offset() {
+    return 2;
+}
+
+static unsigned int fat16_end_cluster(Disk* disk) {
+    Fat_Private* private = disk->fs_private;
+    unsigned int total_fat_size = fat16_sector_to_absolute_pos(disk, private->header.primary_header.sectors_big);
+
+    return (total_fat_size / fat16_get_cluster_size(disk)) + fat16_get_cluster_root_offset();
+}
+
+static int fat16_get_free_cluster(Disk* disk, unsigned int total) {
+    unsigned int clusters_required = total / fat16_get_cluster_size(disk);
+    unsigned int start_cluster = 1 + fat16_get_cluster_root_offset();
+    unsigned int end_cluster = start_cluster;
+    unsigned int end_cluster_of_fat = fat16_end_cluster(disk);
+
+    while (true) {
+        int entry = fat16_get_fat_entry(disk, start_cluster);
+
+        if (!fat16_is_entry_free(entry)) {
+            start_cluster = end_cluster + 1;
+            end_cluster = start_cluster;
+            continue;
+        }
+
+        if (end_cluster > end_cluster_of_fat) {
+            // TODO: use a better error code
+            return SYSTEM_FAIL;
+        }
+
+        bool desired_cluster_allocations = (start_cluster + clusters_required) >= end_cluster;
+
+        if (desired_cluster_allocations) {
+            break;
+        }
+
+        end_cluster++;
+    }
+
+    return start_cluster;
 }
 
 int fat16_read(Disk* disk, char* out, void* descriptor, uint32_t size, uint32_t nmemb) {
