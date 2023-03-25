@@ -68,8 +68,8 @@ typedef struct fat_header {
 } Fat_Header;
 
 typedef struct fat_directory_item {
-    uint8_t filename[8];
-    uint8_t ext[3];
+    char filename[8];
+    char ext[3];
     uint8_t attributes;
     uint8_t reserved;
     uint8_t creation_time_tenths_of_a_sec;
@@ -585,12 +585,7 @@ static Fat_Item* fat16_get_directory_entry(Disk* disk, Path_Part* path) {
     return current_item;
 }
 
-void* fat16_open(Disk* disk, Path_Part* path, FILE_MODE mode) {
-    if (mode != FILE_MODE_READ) {
-        // TODO: allow writing support
-        return ERROR(INVALID_ARGUMENT);
-    }
-
+static void* fat16_open_for_read(Disk* disk, Path_Part* path, FILE_MODE mode) {
     Fat_File_Descriptor* descriptor = zalloc(sizeof(Fat_File_Descriptor));
 
     if (!descriptor) {
@@ -608,6 +603,49 @@ void* fat16_open(Disk* disk, Path_Part* path, FILE_MODE mode) {
     descriptor->pos = 0;
 
     return descriptor;
+}
+
+static Fat_Item* fat16_new_file_item() {
+    Fat_Item* item = zalloc(sizeof(Fat_Directory_Item));
+    Fat_Directory_Item* dir_item = zalloc(sizeof(Fat_Directory_Item));
+
+    item->item = dir_item;
+    item->type = FAT_ITEM_TYPE_FILE;
+
+    // take name as argument instead of hardcoding
+    str_ref_copy(dir_item->filename, "koko    ");
+    str_ref_copy(dir_item->ext, "txt");
+
+    return item;
+}
+
+static void* fat16_open_for_write(Disk* disk, Path_Part* path, FILE_MODE mode) {
+    Fat_File_Descriptor* descriptor = zalloc(sizeof(Fat_File_Descriptor));
+
+    if (!descriptor) {
+        return ERROR(HEAP_MEMORY_NOT_MEMORY_LEFT);
+    }
+
+    descriptor->item = fat16_get_directory_entry(disk, path);
+
+    if (!descriptor->item) {
+        descriptor->item = fat16_new_file_item();
+    }
+
+    descriptor->pos = 0;
+
+    return descriptor;
+}
+
+void* fat16_open(Disk* disk, Path_Part* path, FILE_MODE mode) {
+    switch(mode) {
+        case FILE_MODE_READ:
+            return fat16_open_for_read(disk, path, mode);
+        case FILE_MODE_WRITE:
+            return fat16_open_for_write(disk, path, mode);
+        default:
+            return ERROR(INVALID_ARGUMENT);
+    }
 }
 
 File_System* fat16_init() {
