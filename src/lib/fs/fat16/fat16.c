@@ -193,9 +193,15 @@ int fat16_get_total_items_for_directory(Disk* disk, unsigned int start_sector) {
     return items_count;
 }
 
+static int fat16_root_directory_sector(Fat_Private* private) {
+    Main_Fat_Header* primary_header = &private->header.primary_header;
+
+    return (primary_header->fat_copies * primary_header->sectors_per_fat) + primary_header->reserved_sectors;
+}
+
 int fat16_get_root_directory(Disk* disk, Fat_Private* private_data) {
     Main_Fat_Header* primary_header = &private_data->header.primary_header;
-    int root_directory_sector = (primary_header->fat_copies * primary_header->sectors_per_fat) + primary_header->reserved_sectors;
+    int root_directory_sector = fat16_root_directory_sector(private_data);
     int root_directory_entries = primary_header->root_dir_entries;
     int root_directory_size = (root_directory_entries * sizeof(Fat_Directory_Item));
     int total_sectors = root_directory_size / disk->sector_size;
@@ -557,6 +563,50 @@ static Fat_Item* fat16_find_item_in_directory(Disk* disk, Fat_Directory* directo
     return item;
 }
 
+static unsigned int fat16_get_cluster_root_offset() {
+    return 2;
+}
+
+static uint16_t fat16_end_cluster(Disk* disk) {
+    Fat_Private* private = disk->fs_private;
+    unsigned int total_fat_size = fat16_sector_to_absolute_pos(disk, private->header.primary_header.sectors_big);
+
+    return (total_fat_size / fat16_get_cluster_size(disk)) + fat16_get_cluster_root_offset();
+}
+
+static uint16_t fat16_get_free_cluster(Disk* disk, unsigned int total) {
+    unsigned int clusters_required = total / fat16_get_cluster_size(disk);
+    uint16_t start_cluster = 1 + fat16_get_cluster_root_offset();
+    uint16_t end_cluster = start_cluster;
+    uint16_t end_cluster_of_fat = fat16_end_cluster(disk);
+
+    while (true) {
+        int entry = fat16_get_fat_entry(disk, start_cluster);
+
+        if (!fat16_is_entry_free(entry)) {
+            start_cluster = end_cluster + 1;
+            end_cluster = start_cluster;
+            continue;
+        }
+
+        if (end_cluster > end_cluster_of_fat) {
+            // TODO: use a better error code
+            return SYSTEM_FAIL;
+        }
+
+        bool desired_cluster_allocations = (start_cluster + clusters_required) >= end_cluster;
+
+        if (desired_cluster_allocations) {
+            break;
+        }
+
+        end_cluster++;
+    }
+
+    return start_cluster;
+}
+
+
 static Fat_Item* fat16_get_directory_entry(Disk* disk, Path_Part* path) {
     Fat_Private* fat_private = disk->fs_private;
     Fat_Item* current_item = NULL;
@@ -654,49 +704,6 @@ File_System* fat16_init() {
     return &fat16_file_system;
 }
 
-static unsigned int fat16_get_cluster_root_offset() {
-    return 2;
-}
-
-static unsigned int fat16_end_cluster(Disk* disk) {
-    Fat_Private* private = disk->fs_private;
-    unsigned int total_fat_size = fat16_sector_to_absolute_pos(disk, private->header.primary_header.sectors_big);
-
-    return (total_fat_size / fat16_get_cluster_size(disk)) + fat16_get_cluster_root_offset();
-}
-
-static int fat16_get_free_cluster(Disk* disk, unsigned int total) {
-    unsigned int clusters_required = total / fat16_get_cluster_size(disk);
-    unsigned int start_cluster = 1 + fat16_get_cluster_root_offset();
-    unsigned int end_cluster = start_cluster;
-    unsigned int end_cluster_of_fat = fat16_end_cluster(disk);
-
-    while (true) {
-        int entry = fat16_get_fat_entry(disk, start_cluster);
-
-        if (!fat16_is_entry_free(entry)) {
-            start_cluster = end_cluster + 1;
-            end_cluster = start_cluster;
-            continue;
-        }
-
-        if (end_cluster > end_cluster_of_fat) {
-            // TODO: use a better error code
-            return SYSTEM_FAIL;
-        }
-
-        bool desired_cluster_allocations = (start_cluster + clusters_required) >= end_cluster;
-
-        if (desired_cluster_allocations) {
-            break;
-        }
-
-        end_cluster++;
-    }
-
-    return start_cluster;
-}
-
 int fat16_read(Disk* disk, char* out, void* descriptor, uint32_t size, uint32_t nmemb) {
     Fat_File_Descriptor* desc = descriptor;
 
@@ -719,6 +726,39 @@ int fat16_read(Disk* disk, char* out, void* descriptor, uint32_t size, uint32_t 
     }
 
     return OK;
+}
+
+// TODO: rename for a better name
+static int fat16_get_next_item_position(Disk* disk) {
+    Fat_Private* private = disk->fs_private;
+    int start_sector = fat16_root_directory_sector(private);
+
+    unsigned int directory_start_pos = fat16_sector_to_absolute_pos(disk, start_sector);
+    unsigned total_items = fat16_get_total_items_for_directory(disk, start_sector);
+
+    return directory_start_pos + (sizeof(Fat_Directory_Item) * total_items);
+}
+
+int fat16_write(Disk* disk, char* in, void* descriptor, uint32_t size) {
+    Fat_File_Descriptor* desc = descriptor;
+
+    if (desc->item->type != FAT_ITEM_TYPE_FILE) {
+        return INVALID_ARGUMENT;
+    }
+
+    Fat_Private* private = disk->fs_private;
+
+    // we assume we are always on FAT16 and that we do not utilize hight bits
+    // also we need to store the item as this is it's first write
+    if (desc->item->item->low_16_bits_first_cluster == 0) {
+        desc->item->item->low_16_bits_first_cluster = fat16_get_free_cluster(disk, size);
+        unsigned int write_pos = fat16_get_next_item_position(disk);
+
+        Disk_Stream* stream = private->directory_stream;
+
+        // TODO: implement disk stream write
+        //disk_stream_write(stream, write_pos, desc->item->item, sizeof(Fat_Directory_Item));
+    }
 }
 
 int fat16_seek(void* descriptor, uint32_t offset, SEEK_MODE mode) {
