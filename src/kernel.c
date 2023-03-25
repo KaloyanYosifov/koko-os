@@ -39,7 +39,7 @@ void kernel_main() {
     paging_enable_paging();
     kernel_enable_interrupts();
 
-    FD_INDEX fd = fs_open("0:/main.txt", FIEL_MODE_READ);
+    FD_INDEX fd = fs_open("0:/main.txt", FILE_MODE_READ);
 
     if (fd) {
         File_Stat stat;

@@ -18,9 +18,9 @@ typedef enum seek_mode {
 } SEEK_MODE;
 
 typedef enum file_mode {
-    FIEL_MODE_READ,
-    FIEL_MODE_WRITE,
-    FIEL_MODE_APPEND,
+    FILE_MODE_READ,
+    FILE_MODE_WRITE,
+    FILE_MODE_APPEND,
 } FILE_MODE;
 
 typedef enum file_stat_flags {

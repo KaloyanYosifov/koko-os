@@ -586,7 +586,7 @@ static Fat_Item* fat16_get_directory_entry(Disk* disk, Path_Part* path) {
 }
 
 void* fat16_open(Disk* disk, Path_Part* path, FILE_MODE mode) {
-    if (mode != FIEL_MODE_READ) {
+    if (mode != FILE_MODE_READ) {
         // TODO: allow writing support
         return ERROR(INVALID_ARGUMENT);
     }
