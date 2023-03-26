@@ -746,18 +746,28 @@ int fat16_write(Disk* disk, char* in, void* descriptor, uint32_t size) {
         return INVALID_ARGUMENT;
     }
 
-    /* Fat_Private* private = disk->fs_private; */
+    Fat_Private* private = disk->fs_private;
 
     // we assume we are always on FAT16 and that we do not utilize hight bits
     // also we need to store the item as this is it's first write
     if (desc->item->item->low_16_bits_first_cluster == 0) {
         desc->item->item->low_16_bits_first_cluster = fat16_get_free_cluster(disk, size);
-        /* unsigned int write_pos = fat16_get_next_item_position(disk); */
+        unsigned int write_pos = fat16_get_next_item_position(disk);
+        Disk_Stream* dir_stream = private->directory_stream;
+        disk_stream_seek(dir_stream, write_pos);
 
-        /* Disk_Stream* stream = private->directory_stream; */
+        disk_stream_write(dir_stream, desc->item->item, sizeof(Fat_Directory_Item));
+    }
 
-        // TODO: implement disk stream write
-        //disk_stream_write(stream, write_pos, desc->item->item, sizeof(Fat_Directory_Item));
+    unsigned sector = fat16_cluster_to_sector(private, desc->item->item->low_16_bits_first_cluster);
+    unsigned int absolute_position_in_disk = fat16_sector_to_absolute_pos(disk, sector);
+
+    Disk_Stream* cluster_stream = private->cluster_read_stream;
+    disk_stream_seek(cluster_stream, absolute_position_in_disk);
+
+    if (disk_stream_write(cluster_stream, in, size) != OK) {
+        // TODO: use more fat16 type error
+        return DISK_FAIL_TO_WRITE_STREAM;
     }
 
     return OK;

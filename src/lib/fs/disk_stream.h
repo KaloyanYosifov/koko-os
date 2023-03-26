@@ -15,6 +15,7 @@ typedef struct disk_stream_read_info {
 
 Disk_Stream* disk_stream_new(DISK_TYPE id);
 int disk_stream_seek(Disk_Stream* stream, unsigned int pos);
+int disk_stream_seek_by_sector(Disk_Stream* stream, unsigned int sector);
 int disk_stream_read(Disk_Stream* stream, void* buffer, unsigned int total_bytes);
 int disk_stream_write(Disk_Stream* stream, void* buffer, unsigned int total_bytes);
 void disk_stream_close(Disk_Stream* stream);

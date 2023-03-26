@@ -36,6 +36,12 @@ int disk_stream_seek(Disk_Stream* stream, unsigned int pos) {
     return OK;
 }
 
+int disk_stream_seek_by_sector(Disk_Stream* stream, unsigned int sector) {
+    stream->pos = sector * stream->disk->sector_size;
+
+    return OK;
+}
+
 int disk_stream_read(Disk_Stream* stream, void* buffer, unsigned int total_bytes) {
     if (total_bytes == 0) {
         return INVALID_ARGUMENT;
