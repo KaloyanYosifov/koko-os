@@ -740,6 +740,7 @@ static int fat16_get_next_item_position(Disk* disk) {
 }
 
 int fat16_write(Disk* disk, char* in, void* descriptor, uint32_t size) {
+    // TODO: add mode to descriptor, so we know we can actually write
     Fat_File_Descriptor* desc = descriptor;
 
     if (desc->item->type != FAT_ITEM_TYPE_FILE) {
@@ -756,6 +757,7 @@ int fat16_write(Disk* disk, char* in, void* descriptor, uint32_t size) {
         Disk_Stream* dir_stream = private->directory_stream;
         disk_stream_seek(dir_stream, write_pos);
 
+        // TODO: support persisting new file item info in disk (no matter if we are old or new)
         disk_stream_write(dir_stream, desc->item->item, sizeof(Fat_Directory_Item));
     }
 

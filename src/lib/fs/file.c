@@ -149,6 +149,22 @@ int fs_read (void* ptr, FD_INDEX fd, uint32_t size, uint32_t nmemb) {
     return OK;
 }
 
+int fs_write (void* in, FD_INDEX fd, uint32_t size) {
+    if (size == 0 || fd <= 0) {
+        return INVALID_ARGUMENT;
+    }
+
+    File_Descriptor* descriptor = fs_find_file_descriptor(fd);
+
+    if (!descriptor) {
+        return FS_INVALID_FILE_DESCRIPTOR;
+    }
+
+    descriptor->fs->write(descriptor->disk, (char*) in, descriptor->private_data, size);
+
+    return OK;
+}
+
 int fs_seek(FD_INDEX fd, uint32_t offset, SEEK_MODE mode) {
     File_Descriptor* descriptor = fs_find_file_descriptor(fd);
 
