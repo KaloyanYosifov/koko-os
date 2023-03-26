@@ -126,6 +126,7 @@ int fat16_resolve(Disk* disk);
 int fat16_stat(Disk* disk, void* descriptor, File_Stat* stat);
 void* fat16_open(Disk* disk, Path_Part* path, FILE_MODE mode);
 int fat16_seek(void* descriptor, uint32_t offset, SEEK_MODE mode);
+int fat16_write(Disk* disk, char* in, void* descriptor, uint32_t size);
 int fat16_read(Disk* disk, char* out, void* descriptor, uint32_t size, uint32_t nmemb);
 int fat16_close(void* descriptor);
 
@@ -135,6 +136,7 @@ File_System fat16_file_system = {
     .read = fat16_read,
     .stat = fat16_stat,
     .close = fat16_close,
+    .write = fat16_write,
     .resolve = fat16_resolve
 };
 
@@ -663,8 +665,8 @@ static Fat_Item* fat16_new_file_item() {
     item->type = FAT_ITEM_TYPE_FILE;
 
     // take name as argument instead of hardcoding
-    str_ref_copy(dir_item->filename, "koko    ");
-    str_ref_copy(dir_item->ext, "txt");
+    str_ref_copy(dir_item->filename, "KOKO    ");
+    str_ref_copy(dir_item->ext, "TXT");
 
     return item;
 }
@@ -767,6 +769,7 @@ int fat16_write(Disk* disk, char* in, void* descriptor, uint32_t size) {
     Disk_Stream* cluster_stream = private->cluster_read_stream;
     disk_stream_seek(cluster_stream, absolute_position_in_disk);
 
+    // TODO: make operation not to act as replace, but to overwrite all contents
     if (disk_stream_write(cluster_stream, in, size) != OK) {
         // TODO: use more fat16 type error
         return DISK_FAIL_TO_WRITE_STREAM;

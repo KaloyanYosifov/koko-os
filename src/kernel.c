@@ -52,9 +52,27 @@ void kernel_main() {
         println(buffer);
         free(buffer);
 
-        fs_close(fd);
-
         code = fs_stat(fd, &stat);
         print_number(code);
+    }
+
+    FD_INDEX fd2 = fs_open("0:/koko.txt", FILE_MODE_WRITE);
+
+    if (fd2) {
+        char* testing = "Welcome my lover, my brother";
+        fs_write(testing, fd2, strlen(testing));
+
+        fs_close(fd2);
+    }
+
+    FD_INDEX fd3 = fs_open("0:/koko.txt", FILE_MODE_READ);
+
+    // TODO: fix why we cannot read file that we created from the kernel
+    if (fd3) {
+        char buffer[512];
+        fs_read(buffer, fd, 512, 1);
+        println(buffer);
+
+        fs_close(fd3);
     }
 }
