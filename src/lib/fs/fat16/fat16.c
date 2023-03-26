@@ -746,19 +746,21 @@ int fat16_write(Disk* disk, char* in, void* descriptor, uint32_t size) {
         return INVALID_ARGUMENT;
     }
 
-    Fat_Private* private = disk->fs_private;
+    /* Fat_Private* private = disk->fs_private; */
 
     // we assume we are always on FAT16 and that we do not utilize hight bits
     // also we need to store the item as this is it's first write
     if (desc->item->item->low_16_bits_first_cluster == 0) {
         desc->item->item->low_16_bits_first_cluster = fat16_get_free_cluster(disk, size);
-        unsigned int write_pos = fat16_get_next_item_position(disk);
+        /* unsigned int write_pos = fat16_get_next_item_position(disk); */
 
-        Disk_Stream* stream = private->directory_stream;
+        /* Disk_Stream* stream = private->directory_stream; */
 
         // TODO: implement disk stream write
         //disk_stream_write(stream, write_pos, desc->item->item, sizeof(Fat_Directory_Item));
     }
+
+    return OK;
 }
 
 int fat16_seek(void* descriptor, uint32_t offset, SEEK_MODE mode) {

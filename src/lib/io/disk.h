@@ -22,6 +22,7 @@ typedef struct disk {
 
 void disk_init();
 Disk* disk_get(DISK_TYPE type);
-int disk_read_block(Disk* disk, char* bufffer, unsigned int lba, uint8_t total);
+int disk_read_block(Disk* disk, char* bufffer, unsigned int lba, uint8_t sectors);
+int disk_write_block(Disk* disk, char* buffer, unsigned int lba, uint8_t sectors);
 
 #endif
