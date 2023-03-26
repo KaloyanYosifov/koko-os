@@ -34,6 +34,7 @@ int disk_stream_read(Disk_Stream* stream, void* buffer, unsigned int total_bytes
         return INVALID_ARGUMENT;
     }
 
+    int res = OK;
     unsigned int leftover_sector = (total_bytes % KERNEL_DEFAULT_DISK_SECTOR_SIZE) && 1;
     unsigned int sectors_required_to_read = (total_bytes / KERNEL_DEFAULT_DISK_SECTOR_SIZE) + leftover_sector;
     unsigned int sector = stream->pos / KERNEL_DEFAULT_DISK_SECTOR_SIZE;
@@ -41,10 +42,10 @@ int disk_stream_read(Disk_Stream* stream, void* buffer, unsigned int total_bytes
     char* local_buffer = malloc(sizeof(char) * (KERNEL_DEFAULT_DISK_SECTOR_SIZE * sectors_required_to_read));
 
     if (disk_read_block(stream->disk, local_buffer, sector, sectors_required_to_read) != OK) {
-        free(local_buffer);
-
         // TODO: use better error code
-        return INVALID_ARGUMENT;
+        res = INVALID_ARGUMENT;
+
+        goto fin;
     }
 
     char* temp_buffer = buffer;
@@ -55,9 +56,9 @@ int disk_stream_read(Disk_Stream* stream, void* buffer, unsigned int total_bytes
 
     stream->pos += total_bytes;
 
+fin:
     free(local_buffer);
-
-    return OK;
+    return res;
 }
 
 void disk_stream_close(Disk_Stream* stream) {
