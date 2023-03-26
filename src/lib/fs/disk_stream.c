@@ -34,44 +34,28 @@ int disk_stream_read(Disk_Stream* stream, void* buffer, unsigned int total_bytes
         return INVALID_ARGUMENT;
     }
 
-    char* copy_buffer = buffer;
+    unsigned int leftover_sector = (total_bytes % KERNEL_DEFAULT_DISK_SECTOR_SIZE) && 1;
+    unsigned int sectors_required_to_read = (total_bytes / KERNEL_DEFAULT_DISK_SECTOR_SIZE) + leftover_sector;
+    unsigned int sector = stream->pos / KERNEL_DEFAULT_DISK_SECTOR_SIZE;
+    unsigned int offset = stream->pos % KERNEL_DEFAULT_DISK_SECTOR_SIZE;
+    char* local_buffer = malloc(sizeof(char) * (KERNEL_DEFAULT_DISK_SECTOR_SIZE * sectors_required_to_read));
 
-    unsigned int buffer_index = 0;
+    if (disk_read_block(stream->disk, local_buffer, sector, sectors_required_to_read) != OK) {
+        free(local_buffer);
 
-    do {
-        unsigned int current_total_read = total_bytes > KERNEL_DEFAULT_DISK_SECTOR_SIZE ? KERNEL_DEFAULT_DISK_SECTOR_SIZE : total_bytes;
-        unsigned int sector = stream->pos / KERNEL_DEFAULT_DISK_SECTOR_SIZE;
-        unsigned int offset = stream->pos % KERNEL_DEFAULT_DISK_SECTOR_SIZE;
-        char local_buffer[KERNEL_DEFAULT_DISK_SECTOR_SIZE];
+        // TODO: use better error code
+        return INVALID_ARGUMENT;
+    }
 
-        if (disk_read_block(stream->disk, local_buffer, sector, 1) != OK) {
-            // TODO: use better error code
-            return INVALID_ARGUMENT;
-        }
+    char* temp_buffer = buffer;
 
-        for (unsigned int i = 0; i < current_total_read; i++) {
-            if (offset + i >= KERNEL_DEFAULT_DISK_SECTOR_SIZE) {
-                // add to the total_bytes left for the next sector
-                // if we have reached the end of the buffer
-                current_total_read = current_total_read - i;
-                total_bytes += current_total_read;
+    for (unsigned int i = 0; i < total_bytes; i++) {
+        temp_buffer[i] = local_buffer[offset + i];
+    }
 
-                break;
-            }
+    stream->pos += total_bytes;
 
-            copy_buffer[buffer_index++] = local_buffer[offset+i];
-        }
-
-        // if the total is less than a sector size
-        // set it to 0 indicating that we have finished
-        if (total_bytes <= KERNEL_DEFAULT_DISK_SECTOR_SIZE) {
-            total_bytes = 0;
-        } else {
-            total_bytes -= KERNEL_DEFAULT_DISK_SECTOR_SIZE;
-        }
-
-        stream->pos += current_total_read;
-    } while (total_bytes > 0);
+    free(local_buffer);
 
     return OK;
 }

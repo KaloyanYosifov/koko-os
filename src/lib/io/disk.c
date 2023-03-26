@@ -25,8 +25,9 @@ static int disk_read_sector(char* buffer, unsigned int lba, uint8_t total_sector
         return INVALID_ARGUMENT;
     }
 
-    disk_init_disk_from_lba(lba, total_sectors_to_read);
+    uint16_t* ptr = (uint16_t*) buffer;
 
+    disk_init_disk_from_lba(lba, total_sectors_to_read);
     outb(COMMAND_PORT, READ_MODE);
 
     for (unsigned int i = 0; i < total_sectors_to_read; i++) {
@@ -36,8 +37,6 @@ static int disk_read_sector(char* buffer, unsigned int lba, uint8_t total_sector
         while (!(c & 0x08)) {
             c = insb(COMMAND_PORT);
         }
-
-        uint16_t* ptr = (uint16_t*) buffer;
 
         for (unsigned int i = 0; i < DISK_SECTOR_WORDS; i++) {
             *ptr = insw(0x01F0);
@@ -53,8 +52,9 @@ static int disk_write_sector(char* buffer, unsigned int lba, uint8_t total_secto
         return INVALID_ARGUMENT;
     }
 
-    disk_init_disk_from_lba(lba, total_sectors_to_write);
+    uint16_t* ptr = (uint16_t*) buffer;
 
+    disk_init_disk_from_lba(lba, total_sectors_to_write);
     outb(COMMAND_PORT, WRITE_MODE);
 
     for (unsigned int i = 0; i < total_sectors_to_write; i++) {
@@ -64,8 +64,6 @@ static int disk_write_sector(char* buffer, unsigned int lba, uint8_t total_secto
         while (!(c & 0x08)) {
             c = insb(COMMAND_PORT);
         }
-
-        uint16_t* ptr = (uint16_t*) buffer;
 
         for (unsigned int i = 0; i < DISK_SECTOR_WORDS; i++) {
             outw(0x01F0, *ptr);
