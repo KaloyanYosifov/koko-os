@@ -14,8 +14,18 @@ OBJECTS := $(BUILDDIR)/kernel.asm.o $(addprefix $(BUILDDIR),$(ASM_SOURCES:$(SOUR
 # To print information
 #$(info $$OBJECTS is [${ASM_SOURCES}])
 
+ifeq ($(shell uname -s),Darwin)
+	GCC := i686-elf-gcc
+	GDB := x86_64-elf-gdb
+	LD := i686-elf-ld
+else
+	GCC := gcc -m32
+	GDB := gdb
+	LD := ld -m elf_i386
+endif
+
 BINARY := $(BINDIR)/os.bin
-FLAGS := -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
+FLAGS := -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-pointer-to-int-cast -Wno-int-to-pointer-cast -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
 
 build: clean ./bin/boot.bin ./bin/kernel.bin
 	dd if=./bin/boot.bin >> $(BINARY)
@@ -37,13 +47,13 @@ clean:
 	rm -rf build
 
 debugger:
-	x86_64-elf-gdb -ex "add-symbol-file $(SYMBOLS_FILE) 0x00100000" -ex "target remote | $(VIRTUAL_MACHINE) -hda $(BINARY) -S -gdb stdio"
+	$(GDB) -ex "add-symbol-file $(SYMBOLS_FILE) 0x00100000" -ex "target remote | $(VIRTUAL_MACHINE) -hda $(BINARY) -S -gdb stdio"
 
 $(BINDIR)/kernel.bin: $(OBJECTS)
 	mkdir -p $(@D)
-	i686-elf-ld -g -relocatable $(OBJECTS) -o $(DEFAULT_LINK_KERNEL_FILE)
-	i686-elf-gcc $(FLAGS) -T ./src/linker-symbol.ld -o $(SYMBOLS_FILE) $(DEFAULT_LINK_KERNEL_FILE)
-	i686-elf-gcc $(FLAGS) -T ./src/linker-binary.ld -o ./bin/kernel.bin $(DEFAULT_LINK_KERNEL_FILE)
+	$(LD) -g -relocatable $(OBJECTS) -o $(DEFAULT_LINK_KERNEL_FILE)
+	$(GCC) $(FLAGS) -T ./src/linker-symbol.ld -o $(SYMBOLS_FILE) $(DEFAULT_LINK_KERNEL_FILE)
+	$(GCC) $(FLAGS) -T ./src/linker-binary.ld -o ./bin/kernel.bin $(DEFAULT_LINK_KERNEL_FILE)
 
 $(BINDIR)/boot.bin: ./src/boot/boot.asm
 	mkdir -p $(@D)
@@ -60,4 +70,4 @@ $(BUILDDIR)/%.asm.o: $(SOURCEDIR)/%.asm
 # See https://www.gnu.org/software/make/manual/html_node/Automatic-Variables.html for $< and $@
 $(BUILDDIR)/%.o: $(SOURCEDIR)/%.c
 	mkdir -p $(@D)
-	i686-elf-gcc $(FLAGS) -std=gnu99 -c $< -o $@
+	$(GCC) $(FLAGS) -std=gnu99 -c $< -o $@
