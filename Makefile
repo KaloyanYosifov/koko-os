@@ -19,7 +19,7 @@ ifeq ($(shell uname -s),Darwin)
 	GDB := x86_64-elf-gdb
 	LD := i686-elf-ld
 else
-	GCC := gcc -m32
+	GCC := gcc -m32 -mtune=i386
 	GDB := gdb
 	LD := ld -m elf_i386
 endif
